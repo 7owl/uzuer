@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="7706" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="UZSearchDetailViewController">
+            <connections>
+                <outlet property="orderButton" destination="P0E-J5-zSt" id="sDV-6h-66e"/>
+                <outlet property="siftButton" destination="GDr-w6-3zz" id="KV4-ya-skN"/>
+                <outlet property="tableView" destination="z90-Jm-fBq" id="e9w-oQ-BQJ"/>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NUL-uD-TWr">
+                    <rect key="frame" x="0.0" y="0.0" width="320" height="40"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j7W-v8-Hx8" userLabel="line">
+                            <rect key="frame" x="16" y="39" width="304" height="1"/>
+                            <color key="backgroundColor" red="0.93333333330000001" green="0.93333333330000001" blue="0.93333333330000001" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="0.5" id="azm-Qf-vRm"/>
+                            </constraints>
+                        </view>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Swi-IA-Ndl" userLabel="line">
+                            <rect key="frame" x="160" y="10" width="1" height="20"/>
+                            <color key="backgroundColor" red="0.93333333330000001" green="0.93333333330000001" blue="0.93333333330000001" alpha="1" colorSpace="calibratedRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="20" id="HMD-Lu-UTp"/>
+                                <constraint firstAttribute="width" constant="0.5" id="Jxz-qq-gdU"/>
+                            </constraints>
+                        </view>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="P0E-J5-zSt">
+                            <rect key="frame" x="0.0" y="0.0" width="160" height="40"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                            <inset key="titleEdgeInsets" minX="-26" minY="0.0" maxX="0.0" maxY="0.0"/>
+                            <inset key="imageEdgeInsets" minX="135" minY="0.0" maxX="0.0" maxY="0.0"/>
+                            <state key="normal" title="推荐排序" image="search_housing_page_o_arrow_down">
+                                <color key="titleColor" red="0.98431372549999996" green="0.51764705879999995" blue="0.14117647059999999" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="orderButtonAction:" destination="-1" eventType="touchUpInside" id="MXZ-xy-n5l"/>
+                            </connections>
+                        </button>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GDr-w6-3zz">
+                            <rect key="frame" x="160" y="0.0" width="160" height="40"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                            <inset key="imageEdgeInsets" minX="135" minY="0.0" maxX="0.0" maxY="0.0"/>
+                            <state key="normal" title="筛选" image="search_housing_page_o_arrow_down">
+                                <color key="titleColor" red="0.98431372549999996" green="0.51764705879999995" blue="0.14117647059999999" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </state>
+                            <connections>
+                                <action selector="siftButtonAction:" destination="-1" eventType="touchUpInside" id="bSc-pg-OeS"/>
+                            </connections>
+                        </button>
+                    </subviews>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="centerX" secondItem="Swi-IA-Ndl" secondAttribute="centerX" id="6Sm-lC-oGM"/>
+                        <constraint firstItem="GDr-w6-3zz" firstAttribute="leading" secondItem="P0E-J5-zSt" secondAttribute="trailing" id="GBI-qO-Cor"/>
+                        <constraint firstAttribute="trailing" secondItem="GDr-w6-3zz" secondAttribute="trailing" id="OIy-Et-wf1"/>
+                        <constraint firstAttribute="bottom" secondItem="GDr-w6-3zz" secondAttribute="bottom" id="Suc-xQ-F7B"/>
+                        <constraint firstItem="GDr-w6-3zz" firstAttribute="leading" secondItem="P0E-J5-zSt" secondAttribute="trailing" id="Xzx-L2-0Jw"/>
+                        <constraint firstAttribute="bottom" secondItem="P0E-J5-zSt" secondAttribute="bottom" id="abG-4P-Klv"/>
+                        <constraint firstAttribute="bottom" secondItem="j7W-v8-Hx8" secondAttribute="bottom" id="bB4-El-ejf"/>
+                        <constraint firstItem="GDr-w6-3zz" firstAttribute="width" secondItem="P0E-J5-zSt" secondAttribute="width" id="dHf-oX-gwa"/>
+                        <constraint firstAttribute="height" constant="40" id="dND-EU-ESs"/>
+                        <constraint firstItem="j7W-v8-Hx8" firstAttribute="leading" secondItem="NUL-uD-TWr" secondAttribute="leading" constant="16" id="ez7-MW-4EM"/>
+                        <constraint firstItem="Swi-IA-Ndl" firstAttribute="centerY" secondItem="NUL-uD-TWr" secondAttribute="centerY" id="oZI-qN-pfW"/>
+                        <constraint firstItem="GDr-w6-3zz" firstAttribute="top" secondItem="NUL-uD-TWr" secondAttribute="top" id="ru4-Es-uhl"/>
+                        <constraint firstAttribute="trailing" secondItem="j7W-v8-Hx8" secondAttribute="trailing" id="vCf-wC-UPm"/>
+                        <constraint firstItem="P0E-J5-zSt" firstAttribute="top" secondItem="NUL-uD-TWr" secondAttribute="top" id="x5f-hy-2xg"/>
+                        <constraint firstItem="P0E-J5-zSt" firstAttribute="leading" secondItem="NUL-uD-TWr" secondAttribute="leading" id="xJz-EB-ZYt"/>
+                    </constraints>
+                </view>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" rowHeight="115" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="z90-Jm-fBq">
+                    <rect key="frame" x="0.0" y="40" width="320" height="464"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <color key="separatorColor" red="0.93333333333333335" green="0.93333333333333335" blue="0.93333333333333335" alpha="1" colorSpace="calibratedRGB"/>
+                    <inset key="separatorInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                    <connections>
+                        <outlet property="dataSource" destination="-1" id="mSL-wI-Bf1"/>
+                        <outlet property="delegate" destination="-1" id="ske-b5-F50"/>
+                    </connections>
+                </tableView>
+            </subviews>
+            <color key="backgroundColor" red="0.96078431369999995" green="0.96078431369999995" blue="0.96078431369999995" alpha="1" colorSpace="calibratedRGB"/>
+            <constraints>
+                <constraint firstItem="z90-Jm-fBq" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="1xU-0H-q54"/>
+                <constraint firstItem="z90-Jm-fBq" firstAttribute="top" secondItem="NUL-uD-TWr" secondAttribute="bottom" id="2sd-Gd-tq8"/>
+                <constraint firstAttribute="trailing" secondItem="NUL-uD-TWr" secondAttribute="trailing" id="JSG-mo-USg"/>
+                <constraint firstItem="NUL-uD-TWr" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="YrC-kA-5ke"/>
+                <constraint firstAttribute="trailing" secondItem="z90-Jm-fBq" secondAttribute="trailing" id="d0z-Pl-B1k"/>
+                <constraint firstAttribute="bottom" secondItem="z90-Jm-fBq" secondAttribute="bottom" id="fEj-ql-qRn"/>
+                <constraint firstItem="NUL-uD-TWr" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="raQ-uT-Lht"/>
+            </constraints>
+            <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" translucent="NO" prompted="NO"/>
+            <point key="canvasLocation" x="259" y="79"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="search_housing_page_o_arrow_down" width="7" height="4"/>
+    </resources>
+    <simulatedMetricsContainer key="defaultSimulatedMetrics">
+        <simulatedStatusBarMetrics key="statusBar"/>
+        <simulatedOrientationMetrics key="orientation"/>
+        <simulatedScreenMetrics key="destination" type="retina4"/>
+    </simulatedMetricsContainer>
+</document>

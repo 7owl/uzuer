@@ -1,0 +1,266 @@
+package com.lingtong.util;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.gexin.rp.sdk.base.IPushResult;
+import com.gexin.rp.sdk.base.IQueryResult;
+import com.gexin.rp.sdk.base.impl.SingleMessage;
+import com.gexin.rp.sdk.base.impl.Target;
+import com.gexin.rp.sdk.base.payload.APNPayload;
+import com.gexin.rp.sdk.exceptions.RequestException;
+import com.gexin.rp.sdk.http.IGtPush;
+import com.gexin.rp.sdk.template.LinkTemplate;
+import com.gexin.rp.sdk.template.NotificationTemplate;
+import com.gexin.rp.sdk.template.TransmissionTemplate;
+import com.google.gson.Gson;
+ 
+
+public class PushtoSingleUtil {
+
+	private static String appId = SystemConfiguration.getString("getui.appId") ;
+	private static String appkey =SystemConfiguration.getString("getui.appkey") ;
+	private static String master =SystemConfiguration.getString("getui.master");
+	private static String host =SystemConfiguration.getString("getui.host") ;//"http://sdk.open.api.igexin.com/apiex.htm";
+	
+	/*private static String appId = "UUDAjLFLxX9eIn7QEd6iH2";
+	private static String appkey = "m0SfGTcPaK628h3RLp5bD1" ;
+	private static String master = "hCMziUcWmP63Ll339kkvi9";
+	private static String host = "http://sdk.open.api.igexin.com/apiex.htm";*/
+	
+	public static void pushToCilent(String cid, String content,
+			String platform, String devicetoken) throws Exception {
+		final Map<String, String> map = new HashMap<String, String>();
+		map.put("cid", cid);
+		map.put("content", content);
+		map.put("platform", platform);
+		map.put("devicetoken", devicetoken);
+		new Thread(new Runnable() {
+			public void run() {
+				String cid = map.get("cid");
+				String content = map.get("content");
+				String platform = map.get("platform");
+				String devicetoken = map.get("devicetoken");
+				
+				IGtPush push = new IGtPush(host, appkey, master);
+				// LinkTemplate template = linkTemplateDemo(content);
+				NotificationTemplate template = notificationTemplateDemo(content);
+				// TransmissionTemplate template = bulidTransTemplate(content);
+				SingleMessage message = new SingleMessage();
+				message.setOffline(true);
+				// 离线有效时间，单位为毫秒，可选
+				message.setOfflineExpireTime(24 * 3600 * 1000);
+				message.setData(template);
+				message.setPushNetWorkType(0); // 可选。判断是否客户端是否wifi环境下推送，1为在WIFI环境下，0为不限制网络环境。
+				Target target = new Target();
+				target.setAppId(appId);
+				target.setClientId(cid);
+				IPushResult ret = null;
+				IQueryResult result = push.getClientIdStatus(appId, cid);
+				System.out.println(result.getResponse().get("result").toString()
+						.equals("Online"));
+				try {
+					//ret = push.pushMessageToSingle(message, target);
+					if ("2".equals(platform)) {
+						if (result.getResponse().get("result").toString().equals("Offline")) {
+							push = new IGtPush(host, appkey, master);
+							SingleMessage sm = new SingleMessage();
+							sm.setOffline(true);
+							sm.setData(getTemplate1(content));
+							IPushResult ret0 = push.pushAPNMessageToSingle(appId, devicetoken, sm);
+							System.out.println(ret0.getResponse());
+						}else {
+							message.setData(getTemplate1(content));
+							ret = push.pushMessageToSingle(message, target);
+						}
+					}else {
+						message.setData(template);
+						ret = push.pushMessageToSingle(message, target);
+					}
+					
+
+					// System.out.println( ret.getResultCode());
+					// System.out.println( ret.getResponse() );
+					// if (&&!StringUtils.isNullOrEmpty(platform) &&
+					// "2".equals(platform)) {
+					//
+					//
+					// }
+				} catch (RequestException e) {
+					e.printStackTrace();
+					ret = push.pushMessageToSingle(message, target, e.getRequestId());
+				}
+				if (ret != null) {
+					System.out.println(ret.getResponse().toString());
+				} else {
+					System.out.println("个推错误 服务器响应异常");
+				}
+				// }else {
+				// IGtPush push = new IGtPush(host, appkey, master);
+				// // APNTemplate t = new APNTemplate();
+				// // APNPayload apnpayload = new APNPayload();
+				// // apnpayload.setSound("");
+				// // APNPayload.DictionaryAlertMsg alertMsg
+				// =getDictionaryAlertMsg(content);
+				// // //alertMsg.setTitle("邮箱激活通知");
+				// // //alertMsg.setBody(content);
+				// //// alertMsg.setTitleLocKey("");
+				// //// alertMsg.setActionLocKey("ddddd");
+				// // apnpayload.setAlertMsg(alertMsg);
+				// // t.setAPNInfo(apnpayload);
+				// SingleMessage sm = new SingleMessage();
+				// sm.setOffline(true);
+				// sm.setData(getTemplate1(content));
+				// IPushResult ret0 = push.pushAPNMessageToSingle(appId, devicetoken,
+				// sm);
+				// System.out.println(ret0.);
+				// }
+			}
+		}).start();
+	}
+
+	public static TransmissionTemplate getTemplate1(String content) {
+		
+		Map<String, String> body = new HashMap<String,String>();
+		
+		body.put("content", content);
+		//定义11位邮箱
+		body.put("type", "11");
+		Gson gson = new Gson();
+		String mainbody = gson.toJson(body);
+		TransmissionTemplate template = new TransmissionTemplate();
+		template.setAppId(appId);
+		template.setAppkey(appkey);
+		template.setTransmissionContent(mainbody);
+		template.setTransmissionType(2);
+		APNPayload payload = new APNPayload();
+		payload.setBadge(1);
+		payload.setContentAvailable(1);
+		payload.setSound("default");
+		payload.setCategory("");
+		payload.setAlertMsg(getDictionaryAlertMsg(content));
+		// 字典模式使用下者hello
+		// payload.setAlertMsg(getDictionaryAlertMsg());
+		template.setAPNInfo(payload);
+		return template;
+	}
+
+	private static APNPayload.DictionaryAlertMsg getDictionaryAlertMsg(
+			String content) {
+		APNPayload.DictionaryAlertMsg alertMsg = new APNPayload.DictionaryAlertMsg();
+		alertMsg.setBody(content);
+		alertMsg.setActionLocKey("ActionLockey");
+		alertMsg.setLocKey("LocKey");
+		alertMsg.addLocArg("loc-args");
+		alertMsg.setLaunchImage("launch-image");
+		// IOS8.2以上版本支持
+//		alertMsg.setTitle("");
+		alertMsg.setTitleLocKey("邮件激活通知");
+		alertMsg.addTitleLocArg("TitleLocArg");
+		return alertMsg;
+	}
+
+	// 打开应用
+	public static NotificationTemplate notificationTemplateDemo(String content) {
+		NotificationTemplate template = new NotificationTemplate();
+		// 设置APPID与APPKEY
+		template.setAppId(appId);
+		template.setAppkey(appkey);
+		// 设置通知栏标题与内容
+		template.setTitle("邮件激活结果通知");
+		template.setText(content);
+		// 配置通知栏图标
+		template.setLogo("icon.png");
+		// 配置通知栏网络图标
+		template.setLogoUrl("");
+		// 设置通知是否响铃，震动，或者可清除
+		template.setIsRing(true);
+		template.setIsVibrate(true);
+		template.setIsClearable(true);
+		// 透传消息设置，1为强制启动应用，客户端接收到消息后就会立即启动应用；2为等待应用启动
+		template.setTransmissionType(1);
+		template.setTransmissionContent(content);
+
+		// APNPayload payload = new APNPayload();
+		// payload.setBadge(1);
+		// payload.setContentAvailable(1);
+		// payload.setSound("default");
+		// payload.setCategory("");
+		// payload.setAlertMsg(new APNPayload.SimpleAlertMsg("欢迎回来"));
+		// //payload.setAlertMsg(getDictionaryAlertMsg());
+		// template.setAPNInfo(payload);
+
+		// 设置定时展示时间
+		// template.setDuration("2015-01-16 11:40:00", "2015-01-16 12:24:00");
+		return template;
+	}
+
+	// 透传
+	public static TransmissionTemplate bulidTransTemplate(String content) {
+		TransmissionTemplate template = new TransmissionTemplate();
+		template.setAppId(appId);
+		template.setAppkey(appkey);
+		template.setTransmissionType(2);
+		template.setTransmissionContent(content);
+		return template;
+	}
+
+	// 超链接
+	private static LinkTemplate linkTemplateDemo(String content) {
+		LinkTemplate template = new LinkTemplate();
+		// 设置APPID与APPKEY
+		template.setAppId(appId);
+		template.setAppkey(appkey);
+		// 设置通知栏标题与内容
+		template.setTitle("邮件激活通知");
+		template.setText(content);
+		// 设置通知是否响铃，震动，或者可清除
+		template.setIsRing(true);
+		template.setIsVibrate(true);
+		template.setIsClearable(true);
+		// 设置打开的网址地址
+		template.setUrl("");
+		return template;
+	}
+	
+	public static void main(String[] args) {
+		try {
+			PushtoSingleUtil.pushToCilent("9079fe05c124466a3e38638b7a049d8d", "个推有问题", "", "13ad0c8ebe0d69e88de7020bdedaa2f3");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	// public static void main(String[] args) {
+	// //2330117bd9a8def93cbd003ff03fc1fd
+	// // String cid = "2330117bd9a8def93cbd003ff03fc1fd" ;
+	// String cid = "bd772627c9cf555a71b5aeb3b6e03fe3" ;
+	// try {
+	// IGtPush push = new IGtPush(host, appId, master);
+	// // IQueryResult ret = push.getClientIdStatus(appId, cid);
+	// pushToCilent(cid,"邮箱激活成功");
+	// // System..WriteLine("-----------------------------------------------");
+	// //
+	// System.out.println("------------------------------------------------");
+	// // System.out.println("用户状态:" + ret);
+	// } catch (Exception e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// }
+
+	// public void push(final String token, final String content, final int
+	// badge) {
+	//
+	// final String certPath = getRealPath("/") +
+	// "WEB-INF/classes/aps_development.p12";
+	//
+	// final String certPassword = "";
+	//
+	// ApnsService apnsService = APNS.newService().withCert(certPath,
+	// certPassword).withSandboxDestination().build();
+	//
+	// String payload =
+	// APNS.newPayload().alertBody(content).badge(badge).build();
+	// apnsService.push(token, payload);
+	// }
+}

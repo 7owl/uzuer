@@ -1,0 +1,39 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "0ACE8599C79911A4239481E4C5810886FBE24A1B",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "ee2c9c73-6c96-0044-a07d-9dbdd402a73f++3" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "ee2c9c73-6c96-0044-a07d-9dbdd402a73f++3" : 0,
+    "5DCD37F58FF1DD065D55CDA380C273824454EA8A" : 0,
+    "0ACE8599C79911A4239481E4C5810886FBE24A1B" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "52EBFFA3-2D3E-4A78-84D5-F11E2210CDCC",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "ee2c9c73-6c96-0044-a07d-9dbdd402a73f++3" : "UZuer\/UZuer\/Lib\/ELVTextView\/",
+    "5DCD37F58FF1DD065D55CDA380C273824454EA8A" : "ShenKHealthy\/",
+    "0ACE8599C79911A4239481E4C5810886FBE24A1B" : "UZUER"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "UZuer",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "UZuer.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/code.csdn.net\/kcill\/zuzer.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "0ACE8599C79911A4239481E4C5810886FBE24A1B"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/git.oschina.net\/owls\/ShenKHealthy.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "5DCD37F58FF1DD065D55CDA380C273824454EA8A"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "http:\/\/115.236.68.59:9180\/svn\/1111_ios",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "ee2c9c73-6c96-0044-a07d-9dbdd402a73f++3"
+    }
+  ]
+}

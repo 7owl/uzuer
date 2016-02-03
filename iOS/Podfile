@@ -1,0 +1,24 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, "7.0"
+
+target "UZuer" do
+
+pod 'Aspects'
+pod 'BlocksKit'
+pod 'FMDB'
+pod 'Masonry'
+#pod 'Mantle', '1.5.4'
+pod 'AFNetworking'
+pod 'SSKeychain'
+pod 'SDWebImage'
+pod 'Reachability'
+pod 'UITableView+FDTemplateLayoutCell'
+pod 'FDFullscreenPopGesture'
+#pod 'XXNibBridge', :git => 'https://github.com/sunnyxx/XXNibBridge.git'
+pod 'MJRefresh'
+#pod 'GexinSDK'
+pod 'MBProgressHUD'
+pod 'UMengAnalytics-NO-IDFA'
+pod 'UMengSocial'
+
+end

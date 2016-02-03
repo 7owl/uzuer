@@ -1,0 +1,71 @@
+package com.lingtong.interfaces;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.lingtong.model.User;
+
+@Path("/userservice/")
+public interface MyService {
+	
+	@Path("/addUser/")
+	@POST
+	@Produces({MediaType.APPLICATION_JSON})
+	Response addUser(User user);
+	
+	@Path("/addUser2/")
+	@POST
+	@Produces({MediaType.APPLICATION_FORM_URLENCODED})
+	Response addUser2(@FormParam("id")String id, @FormParam("name")String name);
+	
+	
+	@Path("/delUser/{id}/")
+	@DELETE
+	Response delUser(@PathParam("id") String id);
+
+	@Path("/updateUser/")
+	@PUT
+	Response updateUser(User user);
+
+	@Path("/getUserById/{id}/")
+	@GET
+	@Produces("application/json")
+	// 返回json数据格式
+	User getUserById(@PathParam("id") String id);
+
+	@Path("/")
+	@GET
+	@Produces({"application/json", "text/html; charset=UTF-8"})
+	// 返回json数据格式
+	Response findAllUsers();
+	
+	@Path("/getUser")
+	@GET
+	@Produces({MediaType.APPLICATION_JSON})
+	// 返回json数据格式
+	User findUser();
+	
+	@Path("/getMap")
+	@GET
+	@Produces({MediaType.APPLICATION_JSON})
+	// 返回json数据格式
+	User findMap();
+	
+	@Path("/getList")
+	@GET
+	@Produces({MediaType.APPLICATION_JSON})
+	// 返回json数据格式
+	User findList();
+}

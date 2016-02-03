@@ -1,0 +1,50 @@
+#7niu
+img.7niu.ak = x3aQsbDedwKQihQtoL6jomkpU8slqBJjq2y0iuOW
+img.7niu.sk = tiOuqulnmj6NjZ075PPZ7uDWV45c8K2-JoMBeTTQ
+img.7niu.domain = http://7xl031.com1.z0.glb.clouddn.com
+img.7niu.bucket_name =uz-roomp
+
+#bmob
+bomb.applicationid = 6703d7f03cd5c12024c452771c7d50e3
+bomb.restapikey =ccfd88c4d55a68d8a50c155853bda607
+
+#mail
+mail.host = smtp.uzuer.com
+mail.protocol = smtp
+mail.port = 25
+mail.from = service@uzuer.com
+mail.pwd = d781vca0
+
+#getui
+#appId = i01zn4qlp6ApDXL1vbDnH2
+#appkey = hpoOPgjGUB6hHkOHDwPLX9
+#master = Z6M3UjWaQb6JziYQd4pPN5
+#host = http://sdk.open.api.igexin.com/apiex.htm
+
+getui.appId = UUDAjLFLxX9eIn7QEd6iH2
+getui.appkey = m0SfGTcPaK628h3RLp5bD1
+getui.master = hCMziUcWmP63Ll339kkvi9
+getui.host = http://sdk.open.api.igexin.com/apiex.htm
+#clientid = 45db9ff172f59b270234b689f825b961
+
+
+#baidu api
+baidu_api.key =jyxoYx0nYKLKR0huRcHDqIyV
+#Url
+email.validate.url=192.157.220.203
+#ssq
+ssq.contractPath=D\:/contract
+ssq.returnurl=http\://localhost\:8080/rental/app/signResult
+ssq.mid=E0000000000000000112
+ssq.privatekey=MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBALYDfCItq0ilCQVERwtsGLtjnTa1+mdrE602vfb3EbPsgm4QOPisO1twjBq48fE6OKYdlYzdFO4uk3wRaIZt+qLvG5OEJgmGGpu9H035L1YWT6hl6JQLJCGUqUbhIwW3mCvx/r/l+Jp8uuQ0p8oJCjGvGOOVLcY/xtUWJgEKADtTAgMBAAECgYAhB67eMPV1YGWrrAFMhFhUoTYleI6xd9ABTf7ZM2rmANSGjrEYB4FaDamPK+LUCOHA23uJLZGfy5n+GNakFo819bkw+qM/9igX9DlA3Yp3/qYAZfT/hXOruOjFS7C3S3YntZkiGhzx47yLfhXIKLVncWRJYc2YFkPsQjiCMYs5QQJBAOWvqCunruyy+su95IGx0nmf0FktdwdmXLKjpC1NwiDJelA3vuqUyLTkKESol8BKVb7mPKtJrsYT4Ortstnpv/MCQQDK3apMzOiBrsnxEx9nGjTev33nHiQLL1UnfrX1KXifn4G+WENGRnr/YtvTChq/GtJXp3P2HitTICPjIweP888hAkEAzkHjnvBB4UUIepXX8a+h9p5RFwQA86A0dicFc7l0LsU/FXI5+6YIZojMsHtFauRWA8v1h0vvquiG/fDev1ltiQJBAJu2iYFpxw3DnD3u76uz8eEIGxvLht8O9c3a9M+5hV0AkhYIqZrHfqGIwDK9DsqhS9L8NYY0ogysHt+5g5R7EAECQQDfWCc83zKRbys1BNrZSKyijEilaz4cPc56I4KCe/RIPH58a6HEaZXHTEJZGSlAKgemV2WCsFZqzA5fNUTkkm7e
+ssq.email=supin_support@163.com
+ssq.name=\u676D\u5DDE\u6EAF\u54C1\u4FE1\u606F\u79D1\u6280\u6709\u9650\u516C\u53F8
+ssq.mobile=13758250080
+ssq.emailtitle=\u676D\u5DDE\u6EAF\u54C1\u4FE1\u606F\u79D1\u6280\u6709\u9650\u516C\u53F8
+ssq.emailcontent=\u6B22\u996E\u4F7F\u7528\u4F18\u79DF
+#sciener
+sciener.client_id=4f30c19ee69b4754a4faae5e943eccff
+sciener.client_secret=7783783fcb3f91e4cb5049b29ce55aa9
+sciener.redirect_uri=http\://api.uzuer.com/thirdparty/sciener/test
+sciener.admin.username=api_sciener@uzuer.com
+sciener.admin.password=7961c2f0

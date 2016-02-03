@@ -1,0 +1,19 @@
+#container{
+	padding:5px 10px;	
+}
+
+.experience label{
+	width: auto;
+	font-size:12px;	
+}
+
+.btns{
+	text-align:center;	
+}
+
+textarea{
+	width: 100%;
+	overflow-y: scroll;
+	margin-bottom: 15px;
+	resize:none;
+}

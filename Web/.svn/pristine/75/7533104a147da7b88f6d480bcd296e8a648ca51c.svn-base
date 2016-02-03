@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	                       http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+	                       http://www.springframework.org/schema/context 
+	                       http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	                       http://www.springframework.org/schema/mvc 
+	                       http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+	                       http://www.springframework.org/schema/task 
+     	   				   http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+	<mvc:annotation-driven />
+	<task:annotation-driven />
+	
+	<mvc:view-controller path="/" view-name="index" />
+
+	<context:component-scan base-package="com.lingtong" />
+	
+
+	<mvc:resources mapping="/js/**" location="/js/*" />
+	<mvc:resources mapping="/css/**" location="/css/*" />
+	<mvc:resources mapping="/img/**" location="/img/*" />
+	<mvc:resources mapping="/images/**" location="/images/*" />
+
+	<mvc:resources mapping="/kindeditor/**" location="/kindeditor/**" />
+
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/view/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- SpringMVC上传文件时，需要配置MultipartResolver处理器 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<!-- 指定所上传文件的总大小不能超过20MB。注意maxUploadSize属性的限制不是针对单个文件，而是所有文件的容量之和 1048576 -->
+		<property name="maxUploadSize" value="20485760" />
+	</bean>
+
+	<!-- SpringMVC在超出上传文件限制时，会抛出org.springframework.web.multipart.MaxUploadSizeExceededException -->
+	<!-- 该异常是SpringMVC在检查上传的文件信息时抛出来的，而且此时还没有进入到Controller方法中 -->
+	<bean id="exceptionResolver"
+		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<!-- 遇到MaxUploadSizeExceededException异常时，自动跳转到/WEB-INF/view/error_fileupload.jsp页面 -->
+				<prop
+					key="org.springframework.web.multipart.MaxUploadSizeExceededException">error_fileupload</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 避免IE执行AJAX时,返回JSON出现下载文件 -->
+	<bean id="mappingJacksonHttpMessageConverter"
+		class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/html;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="rightInterceptor" class="com.lingtong.interceptor.RightInterceptor" />
+	<bean
+		class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+		<property name="beanNames">
+			<list>
+				<value>loginController</value>
+			</list>
+		</property>
+		<property name="interceptorNames">
+			<list>
+				<value>rightInterceptor</value>
+			</list>
+		</property>
+	</bean>
+</beans>

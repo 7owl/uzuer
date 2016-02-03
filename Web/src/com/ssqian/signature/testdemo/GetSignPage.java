@@ -1,0 +1,88 @@
+package com.ssqian.signature.testdemo;
+
+import java.io.IOException;
+
+import com.lingtong.util.SystemConfiguration;
+import com.ssqian.common.constant.CoreConstants;
+import com.ssqian.signature.util.SignUtil;
+import java.net.Socket;
+
+public class GetSignPage {
+	public static String excute(String fsid, String email) throws IOException {// 获取签署页面
+		// String fsid = "14427106320034D332";
+		// String email = "15919740291@nomail.pvisual";
+		String pagenum = "1";
+		String signx = "0.5";
+		String signy = "0.3";
+		String typedevice = "1";
+		String returnurl = SystemConfiguration.getString("ssq.returnurl");	
+		String returnadress = "http://www.baidu.com";
+		String openflagString = "1";
+		String url = CoreConstants.HOST;
+		int urltype = 6;
+		int signpagetype = 5;
+		switch (urltype) {
+		case 1:// 普通接口1.2.2
+			url = url + "openpage2/";
+			break;
+
+		case 2:// 量化派接口
+			url = url + "openpage2lhp/";
+			break;
+		case 3:// 蚂蚁天使接口
+			url = url + "openpagemy/";
+			break;
+		case 4:// 股权通
+			url = url + "openpage2gqt/";
+			break;
+		case 5:// 蚂蚁天使接口
+			url = url + "openpageyfy/";
+			break;
+		case 6:// 证书签名接口
+			url = url + "openpagec/";
+			break;
+		default:
+			break;
+		}
+		// （甲方指定初始化位置，不生成默认签名，允许乙方拖动）
+		// String action5 = "getDragSignPageSignimagePc.json";
+		String action5 = "getSignPagePc.json";
+		return getsignurl5(url, action5, fsid, email, pagenum, signx, signy,
+				typedevice, returnurl);
+	}
+
+	
+	public static String getsignurl5(String url, String action, String fsid,
+			String email, String pagenum, String signx, String signy,
+			String typedevice, String returnurl) {// （甲方指定初始化位置，不生成默认签名，允许乙方拖动）
+		url = url + action;
+		StringBuilder signdata = new StringBuilder();
+		signdata.append(action);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + CoreConstants.MID);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + fsid);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + email);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + pagenum);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + signx);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + signy);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + returnurl);
+		signdata.append(CoreConstants.SIGN_SPLITSTR + typedevice);
+		String sign = null;
+		try {
+			sign = SignUtil.sign(signdata.toString()).trim();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		sign = java.net.URLEncoder.encode(sign);
+		String geturl = url + "?fsid=" + fsid + "&pagenum=" + pagenum
+				+ "&signx=" + signx + "&signy=" + signy + "&typedevice="
+				+ typedevice + "&returnurl=" + returnurl + "&email=" + email
+				+ "&mid=" + CoreConstants.MID + "&sign=" + sign;
+		System.out.println(geturl);
+		return geturl;
+
+	}
+
+	public static void main(String[] args) throws IOException {
+		excute("14427149094417X4T2", "15215731373@nomail.pvisual");
+	}
+}

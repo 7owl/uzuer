@@ -1,0 +1,108 @@
+package com.lingtong.interfaces;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import com.google.gson.Gson;
+import com.lingtong.model.User;
+
+public class MyServiceImpl implements MyService {
+
+	private HashMap<String, User> users = new HashMap<String, User>();
+
+	public MyServiceImpl() {
+		init();
+	}
+
+	public Response addUser(User user) {
+
+		users.put(user.getId(), user);
+		System.out.println("添加用户成功");
+		System.out.println(users.size());
+		System.out.println(users.get("2").getName());
+		return Response.ok().build();
+	}
+
+	public Response delUser(String id) {
+		users.remove(id);
+		System.out.println(users.size());
+		return Response.ok().build();
+	}
+
+	public Response updateUser(User user) {
+		users.put(user.getId(), user);
+		System.out.println(users.get("2").getName());
+		return Response.ok().build();
+	}
+
+	public User getUserById(String id) {
+		return users.get(id);
+	}
+
+	private void init() {
+		User user = new User();
+		user.setId("1");
+		user.setName("温欢");
+		users.put(user.getId(), user);
+	}
+
+	public Response findAllUsers() {
+		List<User> userlist = new ArrayList<User>();
+		//System.out.println(users.get("1").getName());
+		userlist.add(users.get("1"));
+		Gson gson = new Gson();
+		String str = gson.toJson(userlist);
+		return Response
+		         .ok()
+		         .entity(str)
+		         //2、这里解决返回Response为UTF-8
+		         //如果是网页，可以只保留上面的“1”中的@Produces，这里的header可不用；如果对Response编码，经测试该Header是必须的
+		         //Content-Type: application/json;charset=UTF-8
+		         .header(HttpHeaders.CONTENT_TYPE,
+		                 MediaType.APPLICATION_JSON + ";charset=UTF-8").build();
+	}
+
+	@Override
+	public User findUser() {
+		// TODO Auto-generated method stub
+		return users.get("1");
+	}
+
+	public User findMap() {
+		Map<String, User> map = new HashMap<String, User>();
+		User user= new User();
+		user.setName("123456");
+		map.put("hhhh", user);
+		User user1 = new User();
+		user1.setMap(map);
+		return user1;
+	}
+	
+	public User findList() {
+		List<User> list = new ArrayList<User>();
+		User user= new User();
+		user.setName("123456");
+		list.add(user);
+		User user1 = new User();
+		user1.setList(list);
+		return user1;
+	}
+
+	public Response addUser2(String id, String name) {
+		User user = new User();
+		user.setId( id );
+		user.setName( name );
+		String str = new Gson().toJson( user );
+		return Response.ok()
+					   .entity(str)
+					   .header(HttpHeaders.CONTENT_TYPE,
+		                 MediaType.APPLICATION_JSON + ";charset=UTF-8").build();
+	}
+
+}

@@ -1,0 +1,123 @@
+AK : x3aQsbDedwKQihQtoL6jomkpU8slqBJjq2y0iuOW
+
+SK : tiOuqulnmj6NjZ075PPZ7uDWV45c8K2-JoMBeTTQ
+
+�ռ���ƣ� uz-roomp
+
+��ţ�˺� �� 1594053872@qq.com
+ ���� : 1qaz2wsx
+
+
+PIC
+
+CREATE TABLE `image` ( 
+ `id` int(11) NOT NULL AUTO_INCREMENT,  
+ `name` varchar(16) DEFAULT NULL,  
+ `url` varchar(255) DEFAULT NULL,  
+ `date` datetime DEFAULT NULL,  
+ `user_id` int(11) DEFAULT NULL,  
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+bmob
+supin_support@163.com
+supinsupport2015(邮箱密码)
+
+supinsupportbmob(bmob密码)
+
+/******/
+1.房东表新增银行卡号:
+ALTER TABLE `rent`.`hosts` ADD COLUMN `bank_card` VARCHAR(30) NULL COMMENT '银行卡号'  AFTER `isDel` ;
+
+2.公司和房源关联的视图:
+CREATE 
+VIEW `companyview` AS
+    select 
+        `company`.`id` AS `id`,
+        `company`.`role_id` AS `role_id`,
+        `company`.`company_name` AS `company_name`,
+        `company`.`company_address` AS `company_address`,
+        `company`.`company_ceo` AS `company_ceo`,
+        `company`.`company_number` AS `company_number`,
+        `company`.`company_desc` AS `company_desc`,
+        count(`room`.`id`) AS `room_number`
+    from
+        (`company`
+        left join `room` ON ((`company`.`id` = `room`.`company_id`)))
+    group by `company`.`id`
+3.房源新增字段
+ALTER TABLE `room`
+ADD COLUMN `company_id`  bigint(20) NULL AFTER `decoration`;
+
+ALTER TABLE `rent`.`room` ADD COLUMN `roomSeq` VARCHAR(45) NULL COMMENT '房源编号'  AFTER `company_id` ;
+4.房客增加身份认证字段
+ALTER TABLE `rent`.`tenants` ADD COLUMN `identity_valid` INT(1) NULL COMMENT '身份认证字段'  AFTER `devicetoken` ;
+ALTER TABLE `rent`.`tenants` CHANGE COLUMN `identity_valid` `identity_valid` INT(1) NULL DEFAULT 0 COMMENT '身份认证字段'  ;
+ALTER TABLE `room` ADD COLUMN `smartlock`  VARCHAR(50) NULL AFTER `roomSeq`;
+
+ALTER TABLE `rent`.`tenants` ADD COLUMN `id_card_valid` VARCHAR(20) NULL  AFTER `identity_valid` , ADD COLUMN `full_name_valid` VARCHAR(20) NULL  AFTER `id_card_valid` , ADD COLUMN `tenantscol` VARCHAR(45) NULL  AFTER `full_name_valid` ;
+
+ALTER TABLE `rent`.`tenants` ADD COLUMN `sciener_is_authorize` INT(1) NULL DEFAULT 0 COMMENT '科技侠用户是否被认证,0表示未认证,1表示已授权'  AFTER `tenantscol` , ADD COLUMN `sciener_is_freeze` INT(1) NULL DEFAULT 0 COMMENT '科技侠用户,是否被冻结,0表示未冻结,1表示已冻结'  AFTER `sciener_is_authorize` ;
+5.新建房客与图片关联的表
+CREATE  TABLE `rent`.`idPicture` (
+  `picname` VARCHAR(50) NULL COMMENT '旧图片名字' ,
+  `url` VARCHAR(45) NULL COMMENT '新图片名字' ,
+  `pictime` VARCHAR(20) NULL COMMENT '上传的时间' ,
+  `tenant_id` INT(11) NULL COMMENT '房客id' ,
+  `status` INT(1) NULL DEFAULT 1 COMMENT '状态字段,0表示被删除,1表示存在' )
+COMMENT = '房客证件照';
+
+6.合同表
+ALTER TABLE `rent`.`contract` ADD COLUMN `signid` VARCHAR(45) NULL COMMENT '合同id'  AFTER `end_time` , ADD COLUMN `docid` VARCHAR(45) NULL COMMENT '合同文档编号'  AFTER `signid` ;
+ALTER TABLE `rent`.`contract` ADD COLUMN `status` INT(2) NULL  AFTER `docid` ;
+ALTER TABLE `rent`.`contract` ADD COLUMN `ssq_email` VARCHAR(45) NULL COMMENT 'ssq系统生成的email'  AFTER `status` ;
+ALTER TABLE `rent`.`contract` CHANGE COLUMN `status` `status` INT(2) NULL DEFAULT 0  ;
+
+7.锁表
+CREATE  TABLE `rent`.`unlock` (
+  `adminKeyboardPs` VARCHAR(45) NULL ,
+  `adminKeyboardPsTmp` VARCHAR(45) NULL ,
+  `aseKey` VARCHAR(45) NULL ,
+  `date` DOUBLE NULL ,
+  `day1PsIndex` INT(16) NULL ,
+  `day2PsIndex` INT(16) NULL ,
+  `day3PsIndex` INT(16) NULL ,
+  `day4PsIndex` INT(16) NULL ,
+  `day5PsIndex` INT(16) NULL ,
+  `day6PsIndex` INT(16) NULL ,
+  `day7PsIndex` INT(16) NULL ,
+  `day10mPsIndex` INT(16) NULL ,
+  `deletePs` VARCHAR(45) NULL ,
+  `deletePsTmp` VARCHAR(45) NULL ,
+  `desc1` VARCHAR(45) NULL ,
+  `doorName` VARCHAR(45) NULL ,
+  `endDate` DOUBLE NULL ,
+  `hasbackup` INT(1) NULL ,
+  `isAdmin` INT(1) NULL ,
+  `isShared` INT(1) NULL ,
+  `key` VARCHAR(45) NULL ,
+  `kid` INT(16) NOT NULL ,
+  `lockName` VARCHAR(45) NULL ,
+  `lockmac` VARCHAR(45) NULL ,
+  `mac` INT(1) NULL ,
+  `password` VARCHAR(45) NULL ,
+  `roomid` INT(45) NULL ,
+  `startDate` DOUBLE NULL ,
+  `unlockFlag` INT(32) NULL ,
+  `username` VARCHAR(45) NULL ,
+  `unlockcol` VARCHAR(45) NULL ,
+  `version` VARCHAR(45) NULL ,
+  `uz_room_seq` VARCHAR(45) NULL ,
+  PRIMARY KEY (`kid`) ,
+  INDEX `uz_room_id_idx` (`uz_room_seq` ASC) ,
+  CONSTRAINT `uz_room_seq`
+    FOREIGN KEY (`uz_room_seq` )
+    REFERENCES `rent`.`room` (`roomSeq` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+COMMENT = '锁表';
+
+/******/
+
+
+

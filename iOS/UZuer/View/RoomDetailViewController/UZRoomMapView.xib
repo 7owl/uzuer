@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="UZRoomMapView">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="243"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Kgs-c7-fmq">
+                    <rect key="frame" x="16" y="15" width="288" height="148"/>
+                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    <constraints>
+                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="148" id="6yJ-zu-PoP"/>
+                        <constraint firstAttribute="width" secondItem="Kgs-c7-fmq" secondAttribute="height" multiplier="288:148" id="fY3-YP-D9e"/>
+                    </constraints>
+                </view>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="地址：" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3eI-Sf-eDa">
+                    <rect key="frame" x="15" y="178" width="45" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="45" id="C9j-pn-q4Z"/>
+                        <constraint firstAttribute="height" constant="21" id="FmK-XV-4ig"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="交通：" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7HH-rV-d2y">
+                    <rect key="frame" x="15" y="204" width="45" height="21"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="45" id="RQr-wj-r9g"/>
+                        <constraint firstAttribute="height" constant="21" id="XPt-NA-awt"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="杭州" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="tgO-DK-Sbp">
+                    <rect key="frame" x="60" y="180" width="186" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="sGh-ud-mWe"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="地铁" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uPK-fo-Mfi">
+                    <rect key="frame" x="60" y="206" width="243" height="17"/>
+                    <constraints>
+                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="17" id="l09-yd-FBm"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <color key="textColor" red="0.13333333333333333" green="0.13333333333333333" blue="0.13333333333333333" alpha="1" colorSpace="calibratedRGB"/>
+                    <nil key="highlightedColor"/>
+                </label>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tvD-v3-pst">
+                    <rect key="frame" x="254" y="180" width="50" height="18"/>
+                    <color key="backgroundColor" red="0.98431372549999996" green="0.51764705879999995" blue="0.14117647059999999" alpha="1" colorSpace="calibratedRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="50" id="HTv-7I-d3J"/>
+                        <constraint firstAttribute="height" constant="18" id="lCV-hu-po8"/>
+                    </constraints>
+                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                    <state key="normal" title="点击导航">
+                        <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    </state>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                            <real key="value" value="2"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                    <connections>
+                        <action selector="navi:" destination="iN0-l3-epB" eventType="touchUpInside" id="y5t-6Y-FEo"/>
+                    </connections>
+                </button>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstItem="uPK-fo-Mfi" firstAttribute="leading" secondItem="7HH-rV-d2y" secondAttribute="trailing" id="7fY-Rp-JDn"/>
+                <constraint firstItem="tgO-DK-Sbp" firstAttribute="leading" secondItem="3eI-Sf-eDa" secondAttribute="trailing" id="EPI-KP-VSd"/>
+                <constraint firstItem="Kgs-c7-fmq" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="15" id="HAH-22-Cfz"/>
+                <constraint firstItem="7HH-rV-d2y" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="15" id="KvY-Wu-90w"/>
+                <constraint firstItem="Kgs-c7-fmq" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="16" id="MJh-Em-dbZ"/>
+                <constraint firstItem="tvD-v3-pst" firstAttribute="leading" secondItem="tgO-DK-Sbp" secondAttribute="trailing" constant="8" id="QIu-37-KmK"/>
+                <constraint firstAttribute="trailing" secondItem="tvD-v3-pst" secondAttribute="trailing" constant="16" id="RIM-XJ-OyS"/>
+                <constraint firstItem="tgO-DK-Sbp" firstAttribute="top" secondItem="tvD-v3-pst" secondAttribute="top" id="WFl-ks-TiY"/>
+                <constraint firstItem="3eI-Sf-eDa" firstAttribute="top" secondItem="Kgs-c7-fmq" secondAttribute="bottom" constant="15" id="dfQ-90-tPl"/>
+                <constraint firstItem="tgO-DK-Sbp" firstAttribute="bottom" secondItem="uPK-fo-Mfi" secondAttribute="top" constant="-9" id="fyO-lY-CbL"/>
+                <constraint firstItem="7HH-rV-d2y" firstAttribute="top" secondItem="tgO-DK-Sbp" secondAttribute="bottom" constant="7" id="mS8-vc-1UA"/>
+                <constraint firstAttribute="trailing" secondItem="uPK-fo-Mfi" secondAttribute="trailing" constant="17" id="nlf-HP-PKK"/>
+                <constraint firstItem="Kgs-c7-fmq" firstAttribute="bottom" secondItem="tgO-DK-Sbp" secondAttribute="top" constant="-17" id="q1b-7b-R59"/>
+                <constraint firstAttribute="bottom" secondItem="uPK-fo-Mfi" secondAttribute="bottom" constant="20" id="rW3-2t-Qqi"/>
+                <constraint firstItem="3eI-Sf-eDa" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="15" id="viY-fh-8Yd"/>
+                <constraint firstAttribute="trailing" secondItem="Kgs-c7-fmq" secondAttribute="trailing" constant="16" id="waL-CA-eMj"/>
+            </constraints>
+            <nil key="simulatedStatusBarMetrics"/>
+            <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <connections>
+                <outlet property="address" destination="tgO-DK-Sbp" id="1tk-We-AYS"/>
+                <outlet property="mapContainView" destination="Kgs-c7-fmq" id="f7U-r9-Pxk"/>
+                <outlet property="mapV" destination="Kgs-c7-fmq" id="ulg-Ch-SIi"/>
+                <outlet property="traffic" destination="uPK-fo-Mfi" id="gn1-Oq-Cwh"/>
+            </connections>
+            <point key="canvasLocation" x="249" y="45.5"/>
+        </view>
+    </objects>
+</document>

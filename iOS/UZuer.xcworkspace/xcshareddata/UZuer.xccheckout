@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>52EBFFA3-2D3E-4A78-84D5-F11E2210CDCC</string>
+	<key>IDESourceControlProjectName</key>
+	<string>UZuer</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>0ACE8599C79911A4239481E4C5810886FBE24A1B</key>
+		<string>https://code.csdn.net/kcill/zuzer.git</string>
+		<key>5DCD37F58FF1DD065D55CDA380C273824454EA8A</key>
+		<string>https://git.oschina.net/owls/ShenKHealthy.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>UZuer.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>0ACE8599C79911A4239481E4C5810886FBE24A1B</key>
+		<string>..</string>
+		<key>5DCD37F58FF1DD065D55CDA380C273824454EA8A</key>
+		<string>../../ShenKHealthy</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://code.csdn.net/kcill/zuzer.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>0ACE8599C79911A4239481E4C5810886FBE24A1B</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>5DCD37F58FF1DD065D55CDA380C273824454EA8A</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ShenKHealthy</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>0ACE8599C79911A4239481E4C5810886FBE24A1B</string>
+			<key>IDESourceControlWCCName</key>
+			<string>UZUER</string>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,36 @@
+package com.lingtong.interfaces.test;
+
+import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
+
+import com.lingtong.interfaces.MyService;
+
+public class MyClient {
+	  
+    /** @MethodName	: main
+     * @Description	: JaxRs测试客户端
+     * @param args
+     */
+    public static void main(String[] args) {
+      MyService myService = JAXRSClientFactory.create("http://localhost:8080/rental/services/myservice",MyService.class);
+      //User user = myService.getUserById("2");
+      //System.out.println(user.getName());
+      
+    /*  User user1 = new User();
+      user1.setId("2");
+      user1.setName("委座");
+      myService.addUser(user1);*/
+      
+     /* User user = new User();
+      user.setId("2");
+      user.setName("123");
+      myService.updateUser(user);*/
+      
+      
+      //myService.delUser("1");
+      
+      //System.out.println(myService.findAllUsers());
+      //System.out.println(myService.findMap());
+      System.out.println(myService.findList());
+    }
+  
+  }

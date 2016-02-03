@@ -1,0 +1,87 @@
+package com.lingtong.interfaces.interceptor;
+
+import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Properties;
+
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
+
+import com.lingtong.util.SystemConfiguration;
+
+/**
+ * 
+ * @author Qixuan.Chen
+ */
+public class MailUtil {
+
+	private static final String HOST = SystemConfiguration
+			.getString("mail.host");
+	private static final String PROTOCOL = SystemConfiguration
+			.getString("mail.protocol");
+	private static final int PORT = SystemConfiguration.getInt("mail.port");
+	private static final String FROM = SystemConfiguration
+			.getString("mail.from");
+	private static final String PWD = SystemConfiguration.getString("mail.pwd");
+
+	
+	 /*private static final String HOST = "smtp.qq.com"; 
+	 private static final String PROTOCOL = "smtp"; 
+	 private static final int PORT = 25; 
+	 private static final String FROM = "service@uzuer.com"; 
+	 private static final String PWD = "d781vca0";*/
+	 
+	public static void send(String toEmail, String content) {
+
+		Properties properties = System.getProperties();
+		properties.setProperty("mail.smtp.host", HOST);
+		properties.put("mail.smtp.auth", "true");
+		Session session = Session.getDefaultInstance(properties,
+				new Authenticator() {
+					public PasswordAuthentication getPasswordAuthentication() {
+						return new PasswordAuthentication(FROM, PWD); // 发件人邮件用户名、密码
+					}
+				});
+
+		try {
+			System.out.println("--send--" + content);
+			Message msg = new MimeMessage(session);
+			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(
+					toEmail));
+			msg.setFrom(new InternetAddress(FROM));
+			System.setProperty("mail.mime.charset","UTF-8");
+			String subject = "UZUER邮箱校验邮件(注：激活链接有效时长 48h)";
+			subject = MimeUtility.decodeText(subject);//防止邮箱主题乱码
+			System.out.println(subject);
+			msg.setSubject(subject);
+			msg.setSentDate(new Date());
+			msg.setContent(content, "text/html;charset=utf-8");
+			Transport.send(msg);
+		} catch (MessagingException mex) {
+			mex.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args) {
+		//MailUtil.send("1611491782@qq.com", "测试邮箱通不通");
+		//MailUtil.send("zhuhaoqi@gisiinfo.com", "测试邮箱通不通");
+		Calendar cal = new GregorianCalendar();
+		DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		System.out.println( format.format(cal.getTime()) );
+		cal.add(cal.DATE, 2);
+		System.out.println( format.format( cal.getTime() ) );
+	}
+}

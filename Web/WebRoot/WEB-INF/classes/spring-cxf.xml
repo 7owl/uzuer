@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" 
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+           http://cxf.apache.org/jaxrs 
+           http://cxf.apache.org/schemas/jaxrs.xsd" default-autowire="autodetect">
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-extension-soap.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+	
+	<bean id="authInterceptor" class="com.lingtong.interfaces.interceptor.AuthInterceptor"/>
+	
+	<bean id="tenantServiceBean" class="com.lingtong.interfaces.TenantServiceImpl"/>
+	<jaxrs:server id="tenantService" address="/tenant">
+		<jaxrs:serviceBeans>
+			<ref bean="tenantServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="roomServiceBean" class="com.lingtong.interfaces.RoomServiceImpl"/>
+	<jaxrs:server id="roomService" address="/room">
+		<jaxrs:serviceBeans>
+			<ref bean="roomServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="communityServiceBean" class="com.lingtong.interfaces.CommunityServiceImpl"/>
+	<jaxrs:server id="communityService" address="/community">
+		<jaxrs:serviceBeans>
+			<ref bean="communityServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="smsServiceBean" class="com.lingtong.interfaces.SmsServiceImpl"/>
+	<jaxrs:server id="smsService" address="/sms">
+		<jaxrs:serviceBeans>
+			<ref bean="smsServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="favoriteListServiceBean" class="com.lingtong.interfaces.FavoriteListServiceImpl"/>
+	<jaxrs:server id="favoriteListService" address="/favoriteList">
+		<jaxrs:serviceBeans>
+			<ref bean="favoriteListServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="complainServiceBean" class="com.lingtong.interfaces.ComplainServiceImpl"/>
+	<jaxrs:server id="complainService" address="/complain">
+		<jaxrs:serviceBeans>
+			<ref bean="complainServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="contractServiceBean" class="com.lingtong.interfaces.ContractServiceImpl"/>
+	<jaxrs:server id="contractService" address="/contract">
+		<jaxrs:serviceBeans>
+			<ref bean="contractServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="unlockServiceBean" class="com.lingtong.interfaces.UnlockServiceImpl"/>
+	<jaxrs:server id="unlockService" address="/unlock">
+		<jaxrs:serviceBeans>
+			<ref bean="unlockServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+	
+	<bean id="orderServiceBean" class="com.lingtong.interfaces.OrderServiceImpl"/>
+	<jaxrs:server id="orderService" address="/order">
+		<jaxrs:serviceBeans>
+			<ref bean="orderServiceBean" />
+		</jaxrs:serviceBeans>
+		<jaxrs:providers>
+	   		<bean class="org.codehaus.jackson.jaxrs.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
+</beans>
+

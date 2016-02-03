@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="UZContractPreviewViewController">
+            <connections>
+                <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
+                <outlet property="webView" destination="7JX-0W-sei" id="Fro-an-XrP"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" id="i5M-Pr-FkT">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uDr-hC-kY7">
+                    <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                    <subviews>
+                        <webView contentMode="scaleAspectFill" translatesAutoresizingMaskIntoConstraints="NO" id="7JX-0W-sei">
+                            <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            <connections>
+                                <outlet property="delegate" destination="-1" id="gab-5z-0w2"/>
+                            </connections>
+                        </webView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstAttribute="trailing" secondItem="7JX-0W-sei" secondAttribute="trailing" id="WNa-z2-3Sx"/>
+                        <constraint firstItem="7JX-0W-sei" firstAttribute="leading" secondItem="uDr-hC-kY7" secondAttribute="leading" id="XTA-dy-1Jd"/>
+                        <constraint firstAttribute="bottom" secondItem="7JX-0W-sei" secondAttribute="bottom" id="e48-OY-7GX"/>
+                        <constraint firstItem="7JX-0W-sei" firstAttribute="width" secondItem="uDr-hC-kY7" secondAttribute="width" id="eup-LA-LgZ"/>
+                        <constraint firstItem="7JX-0W-sei" firstAttribute="top" secondItem="uDr-hC-kY7" secondAttribute="top" id="pz9-9d-qJt"/>
+                        <constraint firstItem="7JX-0W-sei" firstAttribute="height" secondItem="uDr-hC-kY7" secondAttribute="height" id="yFG-RV-HMO"/>
+                    </constraints>
+                    <connections>
+                        <outlet property="delegate" destination="-1" id="k9f-Ho-cdM"/>
+                    </connections>
+                </scrollView>
+            </subviews>
+            <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="uDr-hC-kY7" secondAttribute="trailing" id="Dzb-Dq-JdJ"/>
+                <constraint firstItem="uDr-hC-kY7" firstAttribute="leading" secondItem="i5M-Pr-FkT" secondAttribute="leading" id="JhM-f1-cbi"/>
+                <constraint firstAttribute="bottom" secondItem="uDr-hC-kY7" secondAttribute="bottom" id="OJZ-HU-gpP"/>
+                <constraint firstItem="uDr-hC-kY7" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="pxm-VU-qde"/>
+            </constraints>
+            <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
+            <point key="canvasLocation" x="287" y="232"/>
+        </view>
+    </objects>
+</document>

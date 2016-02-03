@@ -1,0 +1,809 @@
+package com.lingtong.dao.impl;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang.NumberUtils;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import com.lingtong.dao.TenantsDao;
+import com.lingtong.interfaces.interceptor.BmobSmsUtil;
+import com.lingtong.interfaces.interceptor.MailUtil;
+import com.lingtong.interfaces.message.CommonErrorEnum;
+import com.lingtong.interfaces.message.FaultTolerant;
+import com.lingtong.model.IdImage;
+import com.lingtong.model.Image;
+import com.lingtong.model.Pagination;
+import com.lingtong.model.Tenants;
+import com.lingtong.util.CalendarUtil;
+import com.lingtong.util.FileUtils;
+import com.lingtong.util.LTBeanUtils;
+import com.lingtong.util.PushtoSingleUtil;
+import com.lingtong.util.SpringManage;
+import com.lingtong.util.SystemConfiguration;
+import com.lingtong.util.TokenProcessor;
+import com.ssqian.common.util.MD5Utils;
+import com.uzuser.thirdparty.sciener.Authorize;
+import com.uzuser.thirdparty.sciener.RegisterUtil;
+
+/**
+ * @author xqq
+ * @date 2015-8-2 下午12:04:00
+ * 
+ */
+@Component("tenantsDaoImpl")
+public class TenantsDaoImpl implements TenantsDao {
+	@Resource(name = "jdbcTemplate")
+	private JdbcTemplate jdbcTemplate;
+
+	public Map<String, Object> save(Tenants tenant) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		if (!isExist(tenant)) {// 如果不存在
+			if (tenant.getId() != null && tenant.getId() > 0) {// 而且有id的话,就修改
+				String sql = "update "
+						+ tenant.TABLENAME
+						+ "  set username = ?, pwd = ?, first_name = ?, last_name = ?, tel_number = ?, email = ?, id_card = ?, native_place = ?, work_unit = ?, work_place = ?, work_place_number = ? where id = "
+						+ tenant.getId();
+				int affected = jdbcTemplate.update(sql,
+						new Object[] { tenant.getUsername(), tenant.getPwd(),
+								tenant.getFirst_name(), tenant.getLast_name(),
+								tenant.getTel_number(), tenant.getEmail(),
+								tenant.getId_card(), tenant.getNative_place(),
+								tenant.getWork_unit(), tenant.getWork_place(),
+								tenant.getWork_place_number() });
+				if (affected > 0) {
+					result.put("success", "修改成功...");
+				} else {
+					result.put("success", "修改失败...");
+				}
+			} else {// 不存在id值,就保存
+				String sql = "insert into "
+						+ tenant.TABLENAME
+						+ " (username, pwd, first_name, last_name, tel_number, email, id_card, native_place, work_unit, work_place, work_place_number) values(?, ?, ? , ?, ?, ?, ?, ?, ? , ?, ?)";
+				System.out.println(tenant.getNative_place());
+				int affected = jdbcTemplate.update(sql,
+						new Object[] { tenant.getUsername(), tenant.getPwd(),
+								tenant.getFirst_name(), tenant.getLast_name(),
+								tenant.getTel_number(), tenant.getEmail(),
+								tenant.getId_card(), tenant.getNative_place(),
+								tenant.getWork_unit(), tenant.getWork_place(),
+								tenant.getWork_place_number() });
+				if (affected > 0) {
+					result.put("success", "保存成功...");
+				} else {
+					result.put("success", "保存失败...");
+				}
+			}
+		} else {// 如果存在,说明重名了
+			result.put("error", "用户名已存在...");
+		}
+		return result;
+	}
+
+	public boolean isExist(Tenants tenant) {
+		if (jdbcTemplate == null) {// 和接口共用一个方法,接口需要手动实例化对象
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+
+		if (StringUtils.isBlank(tenant.getUsername())) {
+			return true;
+		}
+		String sql = "select count(*) from " + tenant.TABLENAME
+				+ " where username = ?";
+		if (tenant.getId() != null && tenant.getId() > 0) {// 允许修改后,自己跟自己重名,或没有重名
+			sql += " and id != " + tenant.getId();
+
+			int count = jdbcTemplate.queryForInt(sql,
+					new Object[] { tenant.getUsername() });
+			System.out
+					.println("username:" + tenant.getUsername() + ":" + count);
+			return (count > 0 ? true : false);
+		}
+		int count = jdbcTemplate.queryForInt(sql,
+				new Object[] { tenant.getUsername() });
+		System.out.println("username:" + tenant.getUsername() + ":" + count);
+		return (count > 0 ? true : false);
+	}
+
+	public List<Tenants> query(Pagination page, Map<String, Object> results) {
+		List<Tenants> tenants = new ArrayList<Tenants>();
+		// 分页查询条件
+		StringBuilder paginationCondition = new StringBuilder();
+		// 排序条件
+		StringBuilder sortCondition = new StringBuilder(" order by ");
+		// 过滤条件
+		StringBuilder filterCondition = new StringBuilder("");
+
+		if (page != null) {
+			if (page.getPage() > 0 && page.getRows() > 0) {
+				paginationCondition.append(" limit ")
+						.append((page.getPage() - 1) * page.getRows())
+						.append(", ").append(page.getRows());
+			}
+			if (StringUtils.isNotBlank(page.getSort())) {
+				sortCondition.append(page.getSort() + " ");
+			} else {
+				sortCondition.append("id ");
+			}
+			if (StringUtils.isNotBlank(page.getOrder())) {
+				sortCondition.append(page.getOrder());
+			} else {
+				sortCondition.append("desc");
+			}
+			if (StringUtils.isNotBlank(page.getQueryType())) {
+				if ("full_name".equals(page.getQueryType())) {
+					if (StringUtils.isNotBlank(page.getQueryWord())) {
+						filterCondition
+								.append(" where concat(first_name, last_name) like '%"
+										+ page.getQueryWord() + "%' ");
+					}
+				} else {
+					if (StringUtils.isNotBlank(page.getQueryWord())) {
+						filterCondition.append(" where " + page.getQueryType()
+								+ " like '%" + page.getQueryWord() + "%' ");
+					}
+				}
+			}
+		}
+
+		String sql = "select *, concat(first_name, last_name) as fullname from " + Tenants.TABLENAME
+				+ filterCondition.toString();
+		if (StringUtils.isNotBlank(sortCondition.toString())) {
+			sql += sortCondition.toString();
+		}
+		if (StringUtils.isNotBlank(paginationCondition.toString())) {
+			sql += paginationCondition.toString();
+		}
+		System.out.println(sql);
+		List list = jdbcTemplate.queryForList(sql);// 分页数据
+
+		int total = jdbcTemplate.queryForInt("select count(id) from "
+				+ Tenants.TABLENAME + filterCondition.toString());
+		for (int i = 0; list != null && i < list.size(); i++) {
+			Map<String, Object> map = (Map<String, Object>) list.get(i);
+
+			Tenants ten = new Tenants();
+			LTBeanUtils.getInstance().Map2Bean(map, ten);
+			tenants.add(ten);
+		}
+		results.put("rows", tenants);
+		results.put("total", total);
+		return tenants;
+	}
+
+	public Map<String, Object> delete(String delIds) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		if (StringUtils.isBlank(delIds)) {
+			map.put("error", "请选中要删除的记录...");
+			return map;
+		}
+
+		String[] ids = delIds.split(",");
+		StringBuilder sb = new StringBuilder("delete from " + Tenants.TABLENAME);
+		StringBuilder condition = new StringBuilder();
+		for (String id : ids) {
+			if (NumberUtils.isNumber(id)) {
+				condition.append("id = " + id + " or ");
+			}
+		}
+		if (StringUtils.isNotBlank(condition.toString())) {
+			sb.append(" where ").append(condition.toString());
+		}
+		int pos = sb.toString().lastIndexOf("or");
+		String sql = "";
+		if (pos != -1) {
+			sql = sb.toString().substring(0, pos);
+		} else {
+			sql = sb.toString();
+		}
+
+		System.out.println("delete tenants sql:" + sql);
+
+		int affected = jdbcTemplate.update(sql);
+		map.put("success", "已成功删除" + affected + "条记录...");
+
+		return map;
+	}
+
+	/********************************** app 专用接口 *****************************************/
+	public Map<String, Object> getTenantByCell(String tel_number, String smsCode) {
+		// 接口调用此方法时,无法自动依赖注入,手动实例化
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		Map<String, Object> result = new HashMap<String, Object>();
+		Tenants tenant = new Tenants();
+		String sql = "select count(*) from " + Tenants.TABLENAME
+				+ " where tel_number = ?";
+		// 首先判断该用户是否存在
+		int count = jdbcTemplate.queryForInt(sql, new Object[] { tel_number });
+		System.out.println("用户是否存在..." + sql);
+		String token = TokenProcessor.getInstance().generateToken(tel_number,
+				true);// 生成登录令牌
+
+		FaultTolerant ft = new FaultTolerant();
+		if (count > 0) {// 用户已存在
+			sql = "update " + Tenants.TABLENAME
+					+ " set token = ? where tel_number = ? ";
+			System.out.println("更新令牌..." + sql);
+			jdbcTemplate.update(sql, new Object[] { token, tel_number });
+			boolean flag = BmobSmsUtil.getInstance().verifySmsCode(smsCode,
+					tel_number);
+			if (flag) {// 验证成功
+				result.put("code", 0);
+				result.put("msg", "登录成功");
+			} else {// 验证失败
+				result.put("code", CommonErrorEnum.LOGIN_FALI.getCode());
+				result.put("msg", CommonErrorEnum.LOGIN_FALI.getMessage());
+			}
+		} else {// 不用不存在
+			sql = "insert into " + Tenants.TABLENAME
+					+ "(tel_number,username) values(?,?)";
+			System.out.println("注册用户..." + sql);
+			jdbcTemplate.update(sql, new Object[] { tel_number, tel_number });
+
+			sql = "update " + Tenants.TABLENAME
+					+ " set token = ?, headpic = ?  where tel_number = ? ";
+			System.out.println("更新令牌..." + sql);
+			jdbcTemplate.update(sql, new Object[] { token,getHeadPic() , tel_number});
+			boolean flag = BmobSmsUtil.getInstance().verifySmsCode(smsCode,
+					tel_number);
+			if (flag) {// 验证成功
+				if( StringUtils.isNotBlank(tel_number) && tel_number.length() >= 6 ){//注册科技锁
+					Tenants ten = new Tenants();
+					ten.setSciener_password(tel_number.substring(tel_number.length()-6));
+					ten.setSciener_username(tel_number);
+					String sciener_username = RegisterUtil.getInstance().register(ten);
+					if( StringUtils.isNotBlank(sciener_username) ){
+						jdbcTemplate.update("update " + Tenants.TABLENAME + " set sciener_username = ?, sciener_password = ? where tel_number = ?", new Object[]{sciener_username, MD5Utils.md5(tel_number.substring(tel_number.length()-6)), tel_number});
+					}
+				}
+				result.put("code", 0);
+				result.put("msg", "注册并登录成功");
+			} else {// 验证失败
+				result.put("code", CommonErrorEnum.LOGIN_FALI.getCode());
+				result.put("msg", CommonErrorEnum.LOGIN_FALI.getMessage());
+			}
+		}
+		// List list = jdbcTemplate.queryForList(
+		// " select id, tel_number, token from " + Tenants.TABLENAME +
+		// " where tel_number = ?", new Object[]{ tel_number } );
+		String[] fields = new String[] { "id", "username", "token",
+				"first_name", "last_name", "tel_number", "email", "id_card",
+				"native_place", "work_unit", "work_place", "work_place_number",
+				"email_validate" ,"headpic", "identity_valid", "sciener_username", "sciener_password", "sciener_openid"};
+		List list = jdbcTemplate.queryForList(
+				" select " + StringUtils.join(fields, ",") + " from "
+						+ Tenants.TABLENAME + " where tel_number = ?",
+				new Object[] { tel_number });
+		
+		if (list != null && list.size() > 0) {
+			Map<String, Object> map = (Map<String, Object>) list.get(0);
+			LTBeanUtils.getInstance().Map2Bean(map, tenant);
+			//新增的 headPIc
+			tenant.setHeadpic(FileUtils.downloadUrl2(tenant.getHeadpic()));
+			ft.setUid(tenant.getId() + "");
+			ft.setToken(tenant.getToken());
+			String password = tenant.getSciener_password();
+			if( StringUtils.isBlank(password) ){//默认是手机号后6位
+				password = tenant.getTel_number().substring(tenant.getTel_number().length()-6);
+			}
+			Map authorizeInfo = Authorize.getInstance().authorizeDirect(tenant.getSciener_username(), password);
+			if( StringUtils.isBlank( tenant.getSciener_openid() ) && authorizeInfo != null ){
+				jdbcTemplate.update("update " + Tenants.TABLENAME + " set sciener_openid = ? where tel_number = ?", new Object[]{authorizeInfo.get("openid"), tel_number});
+			}
+			result.put("auth", ft);
+			result.put("data", tenant);
+			result.put("authorize", authorizeInfo);
+		}
+		return result;
+	}
+	
+	public Map<String, Object> edit(Tenants tenant, String platform) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		Map<String, Object> result = new HashMap<String, Object>();
+
+		if (!isExist(tenant)) {// 如果不存在
+			if (tenant.getId() != null && tenant.getId() > 0) {// 而且有id的话,就修改
+				String omail = getTenantMailById(tenant.getId()); // 数据库中存在的
+																	// 旧的邮箱地址
+				if (tenant.getEmail().equals(omail)) {
+					String sql = "update "
+							+ tenant.TABLENAME
+							+ "  set username = ?, pwd = ?, first_name = ?, last_name = ?, tel_number = ?, email = ?, id_card = ?, native_place = ?, work_unit = ?, work_place = ?, work_place_number = ? where id = "
+							+ tenant.getId();
+					int affected = jdbcTemplate.update(
+							sql,
+							new Object[] { tenant.getUsername(),
+									tenant.getPwd(), tenant.getFirst_name(),
+									tenant.getLast_name(),
+									tenant.getTel_number(), tenant.getEmail(),
+									tenant.getId_card(),
+									tenant.getNative_place(),
+									tenant.getWork_unit(),
+									tenant.getWork_place(),
+									tenant.getWork_place_number() });
+					if (affected > 0) {
+						result.put("code", "0");
+						result.put("msg", "修改成功");
+						result.put("identity_valid", tenant.getIdentity_valid());
+					} else {
+						result.put("code",
+								CommonErrorEnum.EDIT_INFO_FAIL.getCode());
+						result.put("msg",
+								CommonErrorEnum.EDIT_INFO_FAIL.getMessage());
+						result.put("identity_valid", tenant.getIdentity_valid());
+					}
+				} else {
+					String nmail = tenant.getEmail();
+					if (!StringUtils.isEmpty(nmail)) {
+						String url = makeAuthUrl(tenant.getId(), nmail,
+								platform);
+						if (!StringUtils.isEmpty(url))
+							MailUtil.send(nmail, url);
+						else {
+							result.put("code",
+									CommonErrorEnum.TENANTMAIL_ACTIVE_FAIL
+											.getCode());
+							result.put("msg",
+									CommonErrorEnum.TENANTMAIL_ACTIVE_FAIL
+											.getMessage());
+							result.put("identity_valid", tenant.getIdentity_valid());
+						}
+					}
+					result.put("code",
+							CommonErrorEnum.TENANTMAIL_NEED_ACTIVE.getCode());
+					result.put("msg",
+							CommonErrorEnum.TENANTMAIL_NEED_ACTIVE.getMessage());
+					result.put("identity_valid", tenant.getIdentity_valid());
+				}
+			} else {// 不存在id值,就保存
+				String sql = "insert into "
+						+ tenant.TABLENAME
+						+ " (username, pwd, first_name, last_name, tel_number, email, id_card, native_place, work_unit, work_place, work_place_number,headpic) values(?, ?, ? , ?, ?, ?, ?, ?, ? , ?, ?, ?)";
+				System.out.println(tenant.getNative_place());
+				int affected = jdbcTemplate.update(sql,
+						new Object[] { tenant.getUsername(), tenant.getPwd(),
+								tenant.getFirst_name(), tenant.getLast_name(),
+								tenant.getTel_number(), tenant.getEmail(),
+								tenant.getId_card(), tenant.getNative_place(),
+								tenant.getWork_unit(), tenant.getWork_place(),
+								tenant.getWork_place_number(),
+								getHeadPic()});
+				if (affected > 0) {
+					result.put("success", "保存成功...");
+					// 新增的也要做邮箱验证
+					String nmail = tenant.getEmail();
+					if (!StringUtils.isEmpty(nmail)) {
+						String url = makeAuthUrl(tenant.getId(), nmail,
+								platform);
+						if (!StringUtils.isEmpty(url))
+							MailUtil.send(nmail, url);
+						else {
+							result.put("code",
+									CommonErrorEnum.TENANTMAIL_ACTIVE_FAIL
+											.getCode());
+							result.put("msg",
+									CommonErrorEnum.TENANTMAIL_ACTIVE_FAIL
+											.getMessage());
+							result.put("identity_valid", 0+"");
+						}
+					}
+					result.put("code",
+							CommonErrorEnum.TENANTMAIL_NEED_ACTIVE.getCode());
+					result.put("msg",
+							CommonErrorEnum.TENANTMAIL_NEED_ACTIVE.getMessage());
+					result.put("identity_valid", 0+"");
+
+				} else {
+					result.put("success", "保存失败...");
+				}
+			}
+		} else {// 如果存在,说明重名了
+			result.put("error", "用户名已存在...");
+		}
+		return result;
+	}
+
+	private String getHeadPic() 
+	{
+		Random random = new Random();
+        int n = Math.abs(random.nextInt())%10 ;
+        if (n==0)
+       	 n+=1;
+		return n+".png" ;
+	}
+	
+	/**
+	 * 获取 超链接
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public String makeAuthUrl(Integer id, String nmail, String platform) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		// 拼接激活的url
+		StringBuilder sb = new StringBuilder("<a href='http://"
+				+ SystemConfiguration.getString("email.validate.url")
+				+ ":8080/rental/services/tenant/activeEmail?");
+		sb.append("tenant=" + id);
+		SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String token = TokenProcessor.getInstance().generateToken(
+				fmt.format(new Date()), true);
+		sb.append("&token=").append(token);
+		System.out.println("数据库中token:" + token);
+		sb.append("&platform=").append(platform);
+		sb.append("'>点击激活验证</a>");
+		//Calendar calendar = Calendar.getInstance();
+		Calendar calendar = new GregorianCalendar();
+		calendar.setTime(new Date());
+		calendar.add(calendar.DAY_OF_MONTH, 2);// 时效48
+		Date tokenEndTime = calendar.getTime();
+		String sql = "update " + Tenants.TABLENAME
+				+ " set email_valid_tokenEndTime ='" + fmt.format(tokenEndTime)
+				+ "', email_valid_token='" + token + "' ,email ='" + nmail
+				+ "' where id = " + id;
+		System.out.println("链接中token;" + token);
+		System.out.println("发邮件加入时间 sql : " + sql);
+		int affected = jdbcTemplate.update(sql);
+		if (affected > 0)
+			return sb.toString();
+		else
+			return "";
+	}
+
+	private String getTenantMailById(int id) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		String sql = " select email from " + Tenants.TABLENAME + " where id= "
+				+ id;
+
+		String omail = jdbcTemplate.queryForObject(sql, String.class);
+		System.out.println(" 找出的 oldmail ： " + omail);
+		if (!StringUtils.isEmpty(omail)) {
+			return omail;
+		} else {
+			return "";
+		}
+	}
+
+	/**
+	 * 新增更新 uuid，clientid
+	 * 
+	 * @param tenantid
+	 * @param uuid
+	 * @param clientid
+	 */
+	private boolean updateUUidandClientIDByTid(String tenantid, String uuid,
+			String clientid, String devicetoken) {
+		String sql = "update " + Tenants.TABLENAME + " set uuid='" + uuid
+				+ "',clientid='" + clientid + "',devicetoken='" + devicetoken
+				+ "' where id=" + tenantid;
+		System.out.println(" sql 更新uuid clientid ： " + sql);
+
+		int af = jdbcTemplate.update(sql);
+
+		return af > 0 ? true : false;
+
+	}
+
+	/**
+	 * 
+	 * 接口后台逻辑
+	 * 
+	 */
+	public Map<String, Object> getTenantDetail(String tenantid, String uuid,
+			String clientid, String devicetoken) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		// 更新 tenant id 更新 uuid 和 clientid
+		boolean upres = updateUUidandClientIDByTid(tenantid, uuid, clientid,
+				devicetoken);
+
+		// 添加容错信息 返回信息
+		FaultTolerant ft = new FaultTolerant();
+
+		Map<String, Object> result = new HashMap<String, Object>();
+		List<Tenants> tenants = new ArrayList<Tenants>();
+		StringBuilder sql = new StringBuilder();
+		StringBuilder count = new StringBuilder();
+
+		String[] fields = new String[] { "id", "username", "token",
+				"first_name", "last_name", "tel_number", "email", "id_card",
+				"native_place", "work_unit", "work_place", "work_place_number",
+				"email_validate" ,"headpic","identity_valid", "sciener_username", "sciener_password"};
+		sql.append("select ").append(StringUtils.join(fields, ","))
+				.append(" from ").append(Tenants.TABLENAME)
+				.append(" where id =").append(tenantid);
+		System.out.println("get tenant detail:" + sql.toString());
+		List list = jdbcTemplate.queryForList(sql.toString());
+
+		// 修改 List 的方式
+		if (list != null && list.size() > 0) {
+			Map<String, Object> map = (Map<String, Object>) list.get(0);
+			Tenants t = new Tenants();
+			LTBeanUtils.getInstance().Map2Bean(map, t);
+			//新增的 headPIc
+			t.setHeadpic(FileUtils.downloadUrl2(t.getHeadpic()));
+			ft.setUid(t.getId() + "");
+			String password = t.getSciener_password();
+			if( StringUtils.isBlank(password) ){//默认是手机号后6位
+				password = t.getTel_number().substring(t.getTel_number().length()-6);
+			}
+			Map authorizeInfo = Authorize.getInstance().authorizeDirect(t.getSciener_username(), password);
+			// 廖侃需要添加的token（暂时和登录牌相同）
+			ft.setToken(t.getToken());
+			result.put("auth", ft);
+			result.put("data", t);
+			result.put("authorize", authorizeInfo);
+			result.put("code", 0);
+			result.put("msg", "获取detail成功");
+		}
+		return result;
+
+	}
+
+	private String getClientIDByTID(String tid) {
+		String sql = " select clientid from " + Tenants.TABLENAME
+				+ " where id = " + tid;
+		String clientid = jdbcTemplate.queryForObject(sql, String.class);
+		if (clientid == null) {
+
+		}
+		return clientid;
+	}
+
+	public Map<String, Object> activeEmail(String tenantid, String token,
+			String platform) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		try {
+			if (jdbcTemplate == null) {
+				jdbcTemplate = (JdbcTemplate) SpringManage.getInstance()
+						.getObject("jdbcTemplate");
+			}
+
+			String sql = "select * from " + Tenants.TABLENAME + " where id = "
+					+ tenantid;
+			List list = jdbcTemplate.queryForList(sql.toString());
+			Tenants t = new Tenants();
+			if (list != null && list.size() > 0) {
+				Map<String, Object> map = (Map<String, Object>) list.get(0);
+				LTBeanUtils.getInstance().Map2Bean(map, t);
+			}
+			//
+			String cid = getClientIDByTID(tenantid);
+			String devicetoken = t.getDevicetoken();
+			SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Calendar calendar = Calendar.getInstance();
+			Date d = new Date();
+			if( t.getEmail_valid_token().equals(token) ){
+				if (d.before(fmt.parse(t.getEmail_valid_tokenEndTime()))) {
+					// 个推返回
+					String sql1 = "update "
+							+ Tenants.TABLENAME
+							//+ " set email_valid_tokenEndTime='' ,email_valid_token='', email_validate=1 where id= "
+							+ " set email_validate=1 where id= "
+							+ tenantid;
+					int affected = jdbcTemplate.update(sql1);
+					if (affected > 0) {
+						result.put("success", "邮箱激活成功");
+						PushtoSingleUtil.pushToCilent(cid, "您的新邮箱激活成功。", platform,
+								devicetoken,"","11");
+					}
+				} else {
+					// 超时处理 与校验错误
+					result.put("error", "邮箱激活失败，激活链接过期");
+					PushtoSingleUtil.pushToCilent(cid, "您的新邮箱激活失败，激活链接已经过期。",
+							platform, devicetoken,"","11");
+				}
+			} else {
+				result.put("error", "邮箱激活失败,token不正确;"+token+":"+t.getEmail_valid_token());
+				PushtoSingleUtil.pushToCilent(cid, "邮箱激活失败,token不正确。",
+						platform, devicetoken,"","11");
+			}
+			
+			return result;
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+
+	public Tenants findTenantById(String id) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		String sql = "select * from " + Tenants.TABLENAME + " where id = " + id;
+		List list = jdbcTemplate.queryForList(sql.toString());
+		Tenants t = new Tenants();
+		if (list != null && list.size() > 0) {
+			Map<String, Object> map = (Map<String, Object>) list.get(0);
+			LTBeanUtils.getInstance().Map2Bean(map, t);
+		}
+		System.out.println(" 找出的 id ： " + t.getId_card());
+
+		return t;
+	}
+
+	public Map<String, Object> updateAuthState(String tenantid) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		if (StringUtils.isBlank(tenantid)) {
+			map.put("error", "请选中要认证的用户");
+			return map;
+		}
+
+		StringBuilder sb = new StringBuilder("update ")
+				.append(Tenants.TABLENAME).append(" set identity_valid=1 ")
+				.append("where id=").append(tenantid);
+
+		Tenants t = findTenantById(tenantid);
+
+		System.out.println("delete tenants sql:" + sb.toString());
+
+		int affected = jdbcTemplate.update(sb.toString());
+		if (affected > 0) {
+			map.put("success", "用户认证成功");
+			try {
+				if (t.getClientid()!=null||t.getDevicetoken()!=null) {
+					PushtoSingleUtil.pushToCilent(t.getClientid(), "用户认证成功", "1",
+							t.getDevicetoken(),"","12");
+					PushtoSingleUtil.pushToCilent(t.getClientid(), "用户认证成功", "2",
+							t.getDevicetoken(),"","12");
+				}else {
+					
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			map.put("error", "用户认证失败");
+			try {
+				PushtoSingleUtil.pushToCilent(t.getClientid(), "用户认证失败", "1",
+						t.getDevicetoken(),"","12");
+				PushtoSingleUtil.pushToCilent(t.getClientid(), "用户认证失败", "2",
+						t.getDevicetoken(),"","12");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		return map;
+	}
+
+	public Map<String, Object> uploadFile(byte[][] bytes, Tenants tenant) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+
+		Map<String, Object> result = new HashMap<String, Object>();
+		String pictime = CalendarUtil.getInstance().getCurrentTime();
+
+		//if (bytes != null && bytes.length > 0) {//如果有图片信息,传当做是图片上传
+		int count = 0;
+		for(int i = 0; i < bytes.length; i++){
+			//System.out.println(i);
+			if( bytes[i] == null || bytes.length <= 0 ){
+				continue;
+			}
+			StringBuilder fileName = new StringBuilder();
+			fileName.append("zj_" + "_" + tenant.getId())
+					.append("_" + System.currentTimeMillis()).append(".jpg");
+			boolean flag = FileUtils.upload(bytes[i], fileName.toString());
+			if (flag == true) {
+				String[] fields = new String[] { "url", "picname", "pictime",
+						"tenant_id" };
+				String[] values = new String[] { "?", "?", "?", "?" };
+
+				Object[] vals = new Object[] { fileName.toString(),
+						fileName.toString(), pictime, tenant.getId() };
+				String insert = "insert into " + IdImage.TABLENAME + "("
+						+ StringUtils.join(fields, ",") + ") values("
+						+ StringUtils.join(values, ",") + ")";
+				int affected = jdbcTemplate.update(insert, vals);
+				System.out.println("图片插入语句:" + insert);
+				if (affected > 0) {
+					/*result.put("code", 0);
+					result.put("msg", "认证图片上传成功");*/
+					count++;
+				}/* else {
+					result.put("code",
+							CommonErrorEnum.IDAUTH_PICUPLOAD_FAIL.getCode());
+					result.put("msg",
+							CommonErrorEnum.IDAUTH_PICUPLOAD_FAIL.getMessage());
+				}*/
+			}/* else {
+				result.put(
+						CommonErrorEnum.IDAUTH_PICUPLOAD_FAIL.getCode() + "",
+						CommonErrorEnum.IDAUTH_PICUPLOAD_FAIL.getMessage());
+			}*/
+		}
+		//} else {//否则当做是认证
+			StringBuilder sql = new StringBuilder();
+			sql.append(" update " + Tenants.TABLENAME + " set id_card_valid = ?, full_name_valid = ? where id = ?");
+			int affected = jdbcTemplate.update(sql.toString(), new Object[]{tenant.getId_card_valid(), tenant.getFull_name_valid(), tenant.getId()});
+			if( affected > 0 ){
+				result.put("code", 0);
+				result.put("msg", "认证信息上传成功," + count + "张图片上传成功");
+			} else {
+				result.put("code", CommonErrorEnum.IDAUTH_INFOLOAD_FAIL.getCode() + "");
+				result.put("msg", CommonErrorEnum.IDAUTH_INFOLOAD_FAIL.getMessage() + "," + count + "张图片上传成功");
+			}
+		//}
+		return result;
+	}
+
+	public List<Tenants> findTenantsByIds(String ids) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		List<Tenants> tenants = new ArrayList<Tenants>();
+		String[] tenants_ids = ids.split(",");
+		StringBuilder sb = new StringBuilder("select * from " + Tenants.TABLENAME);
+		StringBuilder condition = new StringBuilder();
+		for (String id : tenants_ids) {
+			if (NumberUtils.isNumber(id)) {
+				condition.append("id = " + id + " or ");
+			}
+		}
+		if (StringUtils.isNotBlank(condition.toString())) {
+			sb.append(" where ").append(condition.toString());
+		}
+		int pos = sb.toString().lastIndexOf("or");
+		String sql = "";
+		if (pos != -1) {
+			sql = sb.toString().substring(0, pos);
+		} else {
+			sql = sb.toString();
+		}
+		List list = jdbcTemplate.queryForList(sql);// 分页数据
+		for (int i = 0; list != null && i < list.size(); i++) {
+			Map<String, Object> map = (Map<String, Object>) list.get(i);
+
+			Tenants ten = new Tenants();
+			LTBeanUtils.getInstance().Map2Bean(map, ten);
+			tenants.add(ten);
+		}
+		return tenants;
+	}
+	
+	
+	 public static void main(String[] args) {
+		
+//		 new TenantsDaoImpl(). makeAuthUrl(59, "1594053872@qq.com",
+//					"1");
+		 new TenantsDaoImpl().activeEmail("59", "0ef1ee97b570976acd57a15ffb9afc0a", "1");
+	}
+}

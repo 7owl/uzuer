@@ -1,0 +1,717 @@
+package com.lingtong.dao.impl;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.google.gson.Gson;
+import com.google.gson.internal.bind.ReflectiveTypeAdapterFactory.Adapter;
+import com.lingtong.dao.ContractDao;
+import com.lingtong.dao.OrderDao;
+import com.lingtong.dao.TenantsDao;
+import com.lingtong.interfaces.interceptor.Auth;
+import com.lingtong.interfaces.interceptor.ReturnJSON;
+import com.lingtong.interfaces.message.CommonErrorEnum;
+import com.lingtong.interfaces.message.FaultTolerant;
+import com.lingtong.model.Community;
+import com.lingtong.model.Company;
+import com.lingtong.model.Contract;
+import com.lingtong.model.Hosts;
+import com.lingtong.model.Order;
+import com.lingtong.model.Pagination;
+import com.lingtong.model.Room;
+import com.lingtong.model.Tenants;
+import com.lingtong.util.LTBeanUtils;
+import com.lingtong.util.PageUtil;
+import com.lingtong.util.SpringManage;
+import com.lingtong.vo.ContractVo;
+import com.lingtong.vo.RoomVo;
+import com.lingtong.word.Word;
+import com.qiniu.common.Zone;
+import com.ssqian.signature.open.action.sign.MutinContractdocUploadSendall;
+import com.ssqian.signature.open.action.sign.ViewContract;
+//import com.ssqian.signature.testdemo.ContractAutoSignAfterPay;
+import com.ssqian.signature.testdemo.ContractAutoSignAfterPay;
+import com.ssqian.signature.testdemo.GetSignPage;
+import com.sun.org.apache.regexp.internal.recompile;
+import com.sun.org.apache.xml.internal.utils.BoolStack;
+import com.sun.org.apache.xpath.internal.operations.And;
+
+@Component("contractDaoImpl")
+public class ContractDaoImpl implements ContractDao {
+	@Resource(name = "jdbcTemplate")
+	private JdbcTemplate jdbcTemplate;
+
+	@Resource(name = "orderDaoImpl")
+	private OrderDao orderDao = new OrderDaoImpl();
+
+	@Resource(name = "tenantsDaoImpl")
+	private TenantsDao tenantsDao = new TenantsDaoImpl();
+	
+	public List<Map<String, Object>> query(Pagination page,
+			Map<String, Object> results) {
+		
+		String sql = "select * from " + ContractVo.DETAILVIEWNAME + " where 1 = 1 ";
+		String pageCondition = PageUtil.getInstance().getQueryCondition(page,
+				ContractVo.class, true);
+		String nopageCondition = PageUtil.getInstance().getQueryCondition(page,
+				ContractVo.class, false);
+		
+		sql += " " + pageCondition;
+		System.out.println("sql:" + sql);
+
+		List list = jdbcTemplate.queryForList(sql);// 分页数据
+
+		int total = jdbcTemplate.queryForInt("select count(*) from " + ContractVo.DETAILVIEWNAME + " where 1 = 1 " + nopageCondition);
+
+		results.put("rows", list);
+		results.put("total", total);
+		return null;
+	}
+	
+	public Contract queryById(Integer id) {
+		Contract con = new Contract();
+		List<Map<String, Object>> list = jdbcTemplate.queryForList("select * from " + Contract.TABLENAME + " where id = ?", new Object[]{ id });
+		if( list != null && list.size() > 0) {
+			LTBeanUtils.getInstance().Map2Bean(list.get(0), con);
+		} else {
+			con = null;
+		}
+		return con;
+	}
+	
+	public synchronized Map<String, Object> save(Contract contract,
+			RoomVo roomVo) {
+
+		// 添加 合同记录
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		Map<String, Object> result = new HashMap<String, Object>();
+		// true 存在合同则不生成新的 ，false：不存在 该房源的未支付订单 可以生成新的
+		// boolean res = checkRoomContractIsCreate(contract);
+		
+		//新增过滤
+		boolean ten_res = checkContractByTenant(contract);
+		
+		boolean res = checkContractByCompletedState(contract);
+		if (ten_res) {
+			result.put("code", "12005");
+			result.put("msg", "您有有效合同或至付款节点的合同，暂时不能进行选择租赁房源，请在我的合同中查看");
+		}else if (res) {
+			result.put("code", "12005");
+			result.put("msg", "请查看您的合同记录如不存在该房源的未付款订单则房源被其他用户锁定中，暂时不可用");
+		} else {
+			if (contract == null) {
+				result.put("code", "12001");
+				result.put("msg", "合同数据为空，保存失败");
+			}
+			if (!isExist(contract)) {
+				if (contract.getId() != null && contract.getId() > 0) {
+					String[] updateFields = new String[] { "host_id = ?",
+							"tenant_id = ?", "contract_type_id = ?",
+							"company_id = ?", "room_id = ?", "sign_time = ?",
+							"end_time = ?" };
+					Object[] fieldsValue = new Object[] {
+							contract.getHost_id(), contract.getTenant_id(),
+							contract.getContract_type_id(),
+							contract.getCompany_id(), contract.getRoom_id(),
+							contract.getSign_time(), contract.getEnd_time() };
+
+					String sql = "update " + Contract.TABLENAME + " set "
+							+ StringUtils.join(updateFields, ",")
+							+ " where id =" + contract.getId().toString();
+					// System.out.println(sql );
+					int affected = jdbcTemplate.update(sql, fieldsValue);
+					if (affected > 0) {
+						result.put("code", "0");
+						result.put("msg", "修改成功");
+					} else {
+						result.put("code", "12002");
+						result.put("msg", "修改失败,服务器异常");
+					}
+				} else {// 新增
+
+					String sql = "insert into " + Contract.TABLENAME + " ("
+							+ " host_id," + " tenant_id,"
+							+ " contract_type_id," + " company_id, "
+							+ " room_id," + " sign_time," + " end_time) values"
+							+ "(?,?,?,?,?,?,?)";
+					System.out.println(sql);
+
+					int affected = jdbcTemplate.update(
+							sql,
+							new Object[] { contract.getHost_id(),
+									contract.getTenant_id(),
+									contract.getContract_type_id(),
+									contract.getCompany_id(),
+									contract.getRoom_id(),
+									contract.getSign_time(),
+									contract.getEnd_time() });
+					if (affected > 0) {
+						String query = "select last_insert_id() as id from "
+								+ Contract.TABLENAME + " limit 1";
+						System.out.println("图片id查询语句:" + query);
+						int id = jdbcTemplate.queryForInt(query);
+						contract.setId(id);
+						String contractno = contract.getContractno()
+								+ StringUtils.leftPad(id + "", 5, "0");
+						affected = jdbcTemplate.update("update "
+								+ Contract.TABLENAME
+								+ " set  contractno= ? where id = ?",
+								new Object[] { contractno, id });
+						if (affected > 0) {
+							contract.setContractno(contractno);
+							System.out.println("合同保存成功,且合同编号更新成功...");
+						}
+						result.put("code", "0");
+						result.put("msg", "保存成功");
+						// 生成订单
+						boolean isSuccess = orderDao.createOrderByContract(
+								contract, roomVo);
+
+						if (isSuccess) {
+							List<Order> orders = orderDao
+									.getLastedOrders(contract);
+							// 暂时返回第一张订单
+							// result.put("contractno",
+							// contract.getContractno());
+							result.put("data", orders);
+							result.put("code", 0);
+							result.put("msg", "合同记录以及对应订单生成成功");
+
+							// 订单生成成功后 ： 按照模板创建file
+							Tenants tenants = tenantsDao
+									.findTenantById(contract.getTenant_id()
+											.toString());
+							// String filePath =
+							// Word.createContractDoc(contract, roomVo,
+							// tenants);
+							// 文件创建之后调用上上签接口上传 合同文件 将view的 url 反给客户端 预览
+							Map<String, Object> r = save(contractno);
+							if (r.get("code").toString().equals("0")) {
+								ContractVo contractVo = getContractByNo(contractno);
+								if (contractVo != null) {
+									try {
+										String url = ViewContract.excute(
+												contractVo.getSignid(),
+												contractVo.getDocid());
+										result.put("url", url);
+									} catch (IOException e) {
+										e.printStackTrace();
+									}
+								}
+							} else {
+								result.put("code", r.get("code"));
+								result.put("msg",
+										"合同以及订单记录生成成功，" + r.get("msg")+"，将删除系统中的合同记录以及对应订单");
+								deleteContractByNo(contract,contractno);
+							}
+							// -------------------end
+						} else {
+							result.put("code", "12006");
+							result.put("msg", "合同记录生成成功但是订单拆分失败");
+						}
+
+					} else {
+						result.put("code", "12003");
+						result.put("msg", "合同数据保存失败");
+					}
+				}
+			} else {
+				result.put("code", "12004");
+				result.put("msg", "合同已存在");
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 新增校验 ： 一个人只能有一个在途的 合同或订单
+	 * @param contract
+	 * @return
+	 */
+	private boolean checkContractByTenant(Contract contract) {
+		String sql = "select * from " + Contract.TABLENAME
+				+ " where tenant_id=?  and completedState in ('0','1') ";
+		List list = jdbcTemplate.queryForList(sql,
+				new Object[] { contract.getTenant_id() });
+		
+		List<ContractVo> zeroContractVos = new ArrayList<ContractVo>();
+		
+		List<ContractVo> oneContractVos = new ArrayList<ContractVo>();
+		
+		for (int i = 0; list != null && i < list.size(); i++) {
+			Map<String, Object> map = (Map<String, Object>) list.get(i);
+			ContractVo contractVo = new ContractVo();
+			LTBeanUtils.getInstance().Map2Bean(map, contractVo);
+			if ("0".equals(contractVo.getCompletedState())) {
+				zeroContractVos.add(contractVo);
+			}
+			if ("1".equals(contractVo.getCompletedState())) {
+				oneContractVos.add(contractVo);
+			}
+		}
+		if(zeroContractVos.size() > 0){
+			return checkOrderCreateTime(zeroContractVos.get(0));
+		}
+		//锁定
+		if (oneContractVos.size() > 0) {
+			return true ;
+		}
+		return false;
+	}
+
+	/**
+	 * 上上签合同上传失败，删除合同记录和对应的订单记录
+	 * @param contractno
+	 * @param contract
+	 */
+	private void deleteContractByNo(Contract contract,String contractno) {
+		// TODO Auto-generated method stub
+		String sql = "delete from "+ Contract.TABLENAME+ " where contractno=? ";
+		String sql1 = " delete from " + Order.TABLENAME+ " where contract_id=? ";
+		
+	    int affected =jdbcTemplate.update(sql,new Object[]{contractno});
+		if (affected > 0) {
+			System.out.println("delete old contract By No success");
+		}
+		affected =jdbcTemplate.update(sql1,new Object[]{contract.getId()});
+		if (affected > 0) {
+			System.out.println("delete old Order By Contract_id success");
+		}
+	}
+
+	/**
+	 * 校验该房源是否存在未完成的和合同
+	 * 
+	 * @param contract
+	 * @return  true 存在合同则不生成新的 ，false：不存在 该房源的未支付订单 可以生成新的
+	 */
+	private boolean checkContractByCompletedState(Contract contract) {
+		
+				
+		// 原有的 为进行付款操作的合同 ( 在代码里判断 不是当前这个用户的)
+		String sql = "select * from " + Contract.TABLENAME
+				+ " where room_id=?  and completedState = '0' ";
+		// 原有的在履行中的合同
+		// String sql1 = "select count(*) from " + Contract.TABLENAME
+		// +" where room_id=? and completedState = '1' ";
+		List list = jdbcTemplate.queryForList(sql,
+				new Object[] { contract.getRoom_id() });
+		// 这个是当前用户生成至付款节点的 合同
+		List<ContractVo> contracts = new ArrayList<ContractVo>();
+		// 其他用户 生成了当前房源的合同 到达付款节点
+		List<ContractVo> contracts_Other = new ArrayList<ContractVo>();
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; list != null && i < list.size(); i++) {
+			Map<String, Object> map = (Map<String, Object>) list.get(i);
+			ContractVo contractVo = new ContractVo();
+			LTBeanUtils.getInstance().Map2Bean(map, contractVo);
+			if (contractVo.getTenant_id() == contract.getTenant_id()) {
+				sb.append(contractVo.getId() + ",");
+				contracts.add(contractVo);
+			} else {
+				contracts_Other.add(contractVo);
+			}
+		}
+		
+		// 房源被其他用户锁定 支付状态 
+		if (contracts_Other.size() > 0) {
+				return checkOrderCreateTime(contracts_Other.get(0));
+		}
+		
+		// 删除掉当前用户自己的锁定
+		// 修改逻辑 自己的合同 ，
+		//      判断线下的Order 的生成时间 ： 如果Order createtime的币当前时间 > 1h 
+		//      并且sum payorderstate = 0 （超过1小时未付款） 更新 合同 状态 -1 
+		if (contracts.size() > 0 && contracts_Other.size() == 0) {
+			return checkOrderCreateTime(contracts.get(0));
+//			String ids = sb.toString().substring(0, sb.toString().length() - 1);
+//			System.out.println(" ids  " + ids);
+//			sql = "delete from " + Contract.TABLENAME + " where id in (" + ids
+//					+ ")";
+//			
+//			sql = "update "+ Contract.TABLENAME +" set  " ;
+//			int affected = jdbcTemplate.update(sql);
+//			if (affected == contracts.size()) {
+//				System.out.println("delete old contract success");
+//			}
+//			sql = "delete from " + Order.TABLENAME + " where contract_id in ("
+//					+ ids + ") and paystate=0 ";
+//			affected = jdbcTemplate.update(sql);
+//			if (affected > 0) {
+//				System.out.println("delete old order success");
+//			}
+		}
+		// Service 规避掉了这种情况 合同执行中 到期时间小于一个月
+		// }else {
+		// int affected = jdbcTemplate.queryForInt(sql1,new
+		// Object[]{contract.getRoom_id()});
+		// if (affected > 0 ) {
+		// return true ;
+		// }
+		// }
+		return false;
+	}
+
+	
+	/**
+	 * 判断自己 合同的订单是否支付已超时
+	 * @return 
+	 * 	false 
+	 * 	true 订单状态 锁定
+	 */
+	private boolean checkOrderCreateTime(ContractVo contractVo)
+	{
+		 Order order =  orderDao.getFristOrder(contractVo.getId());
+		 
+		 if (order.getPaystate() == 1) {
+			return true;
+		 }else {
+		 SimpleDateFormat format =new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		 Calendar calendar = Calendar.getInstance();
+		 Calendar calendar2 = Calendar.getInstance();
+		 try {
+			calendar.setTime(format.parse(order.getCreatetime()));
+			calendar2.setTime(new Date());
+			//订单创建时间一小时以后 并且没有付款的 更新状态
+			calendar.add(Calendar.HOUR, 1);
+			int res = calendar.compareTo(calendar2);
+			if (res <= 0) {
+ 					//更新合同状态成 -1 合同因为订单支付时间超过一小时而失效 不锁定
+				System.out.println("check order status paytime more than 1 hour update contract");
+				return !updateContractCompleteState(contractVo);
+			}else {
+				//订单在一小时内 锁定中
+				return true ;
+			}
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false ;
+		}
+	}
+	
+	private boolean checkRoomContractIsCreate(Contract contract) {
+
+		String room_id = contract.getRoom_id().toString();
+		String sql1 = "select COUNT(*) from " + Order.TABLENAME
+				+ " t1 LEFT JOIN " + Contract.TABLENAME
+				+ " t2 on t1.contract_id=t2.id where t2.room_id = ?";
+		String sql2 = "select SUM(t1.paystate) from " + Order.TABLENAME
+				+ " t1 LEFT JOIN " + Contract.TABLENAME
+				+ " t2 on t1.contract_id=t2.id where t2.room_id = ? ";
+		// 所有的订单数
+		int count = jdbcTemplate.queryForInt(sql1, new Object[] { room_id });
+		// 订单的状态求和
+		int statesum = jdbcTemplate.queryForInt(sql2, new Object[] { room_id });
+
+		if (count == 0)
+			return false;
+		else if (count > statesum)
+			return true;
+		else
+			return false;
+	}
+
+	public boolean isExist(Contract contract) {
+		if (StringUtils.isBlank(contract.getContractno())) {
+			return true;
+		}
+		String sql = "select count(*) from " + Contract.TABLENAME
+				+ " where contractno = ?";
+		if (contract.getId() != null && contract.getId() > 0) {
+			sql += " and id != " + contract.getId();
+		}
+		System.out.println("SQL :" + sql);
+		int count = jdbcTemplate.queryForInt(sql,
+				new Object[] { contract.getContractno() });
+		System.out.println("Contractno:" + contract.getContractno() + "count :"
+				+ count);
+		return (count > 0 ? true : false);
+	}
+
+	public ContractVo getContractByNo(String contractno) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		String[] tables = new String[] { Contract.TABLENAME + " con",
+				Room.TABLENAME + " room", Tenants.TABLENAME + " ten" };
+		List list = jdbcTemplate
+				.queryForList(
+						"select con.*,room.price, room.cityid, room.size, ten.first_name, ten.last_name, ten.tel_number, ten.id_card,ten.email from "
+								+ StringUtils.join(tables, ",")
+								+ " where con.tenant_id = ten.id and con.room_id = room.id and con.contractno = ?",
+						new Object[] { contractno });
+		System.out.println();
+		ContractVo contractVo = new ContractVo();
+		if (list != null && list.size() > 0) {
+			Map<String, Object> map = (Map<String, Object>) list.get(0);
+			LTBeanUtils.getInstance().Map2Bean(map, contractVo);
+		}
+		return contractVo;
+	}
+
+	public boolean editContract(String contractno, String docid, String signid,
+			String ssq_email) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		String sql = "update "
+				+ Contract.TABLENAME
+				+ " set docid = ?,signid = ?, ssq_email = ? where contractno = ?";
+		int affected = jdbcTemplate.update(sql, new Object[] { docid, signid,
+				ssq_email, contractno });
+		return affected > 0 ? true : false;
+
+	}
+
+	public boolean updateContractStatus(String signId) {
+		String sql = "update " + Contract.TABLENAME
+				+ " set status = 1 where signid = ?";
+		int affected = jdbcTemplate.update(sql, new Object[] { signId });
+		return affected > 0 ? true : false;
+	}
+	
+	public boolean updateContractCompleteState(ContractVo contractVo) {
+		String sql = "update " + Contract.TABLENAME
+				+ " set completedState = '-1' where id = ?";
+		int affected = jdbcTemplate.update(sql, new Object[] { contractVo.getId() });
+		return affected > 0 ? true : false;
+	}
+
+	public Map<String, Object> getContractByTenantId(String tenantid) {
+		
+		
+		Map<String, Object> result = new HashMap<String, Object>();
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		//如果到期了,修改合同状态
+		jdbcTemplate.execute("update " + Contract.TABLENAME + " set completedState = '2' where Datediff(DATE_FORMAT( end_time, '%Y-%m-%d'), now()) < 0");
+		String[] tables = new String[] { Contract.TABLENAME + " con",
+				Room.TABLENAME + " room", Tenants.TABLENAME + " ten",
+				Community.TABLENAME + " comm" };
+		// String sql = "select * from "+ Contract.TABLENAME
+		// +" where tenant_id=?";
+		System.out
+				.println("select con.*,room.price, room.cityid, room.size, room.kind, comm.comm_name ,ten.first_name, ten.last_name, ten.tel_number, ten.id_card,ten.email from "
+						+ StringUtils.join(tables, ",")
+						+ " where con.tenant_id = ten.id and con.room_id = room.id and comm.id=room.comm_id and con.tenant_id = ? ORDER BY con.sign_time DESC   ");
+		List list = jdbcTemplate
+				.queryForList(
+						"select con.*,room.price, room.cityid, room.size, room.kind, comm.comm_name ,ten.first_name, ten.last_name, ten.tel_number, ten.id_card,ten.email from "
+								+ StringUtils.join(tables, ",")
+								+ " where con.tenant_id = ten.id and con.room_id = room.id and comm.id=room.comm_id and con.tenant_id = ? ORDER BY con.sign_time DESC",
+						new Object[] { tenantid });
+		// List list = jdbcTemplate.queryForList(sql,new Object[]{tenantid});
+		List<ContractVo> contracts = new ArrayList<ContractVo>();
+		for (int i = 0; list != null && i < list.size(); i++) {
+			Map<String, Object> map = (Map<String, Object>) list.get(i);
+			ContractVo contractVo = new ContractVo();
+			LTBeanUtils.getInstance().Map2Bean(map, contractVo);
+			
+			//添加判断逻辑 ： 更新创建超过 1 小时但是未付款的 合同的状态更新为 -1 
+			if ("0".equals(contractVo.getCompletedState())) {
+				checkOrderCreateTime(contractVo);
+				if (checkOrderCreateTime(contractVo)) {
+					System.out.println(" contract lock do not update , less than 1 hour");
+				}else {
+					System.out.println(" contract update state -1  more than 1 hour ");
+				}
+			}
+			contracts.add(contractVo);
+		}
+		result.put("data", contracts);
+		result.put("code", 0);
+		result.put("msg", "获取合同成功");
+		return result;
+	}
+
+	/**************************************************************************************************/
+	private Map<String, Object> save(String contractno) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		ContractVo contractVo = getContractByNo(contractno);
+		if (contractVo != null) {
+			String filepath = Word.createContractDoc(contractVo);
+			if (!filepath.equals("ERROR")) {
+				List<Tenants> tenants = tenantsDao.findTenantsByIds(contractVo
+						.getTenant_id() + "");
+				
+				if(tenants!=null && tenants.size()>0)
+				{
+					//认证
+					if (tenants.get(0).getIdentity_valid() != 1 ) {
+						result.put("code",
+								CommonErrorEnum.CONTRACT_VALIDATE_ERROR.getCode() + "");
+						result.put("msg",
+								CommonErrorEnum.CONTRACT_VALIDATE_ERROR.getMessage());
+						return result;
+					}
+					//姓名校验
+					if ( StringUtils.isEmpty(tenants.get(0).getFirst_name()+tenants.get(0).getLast_name())) {
+						result.put("code",
+								CommonErrorEnum.CONTRACT_FULLNAMEVALIDATE_ERROR.getCode() + "");
+						result.put("msg",
+								CommonErrorEnum.CONTRACT_FULLNAMEVALIDATE_ERROR.getMessage());
+						return result;
+					}
+				}
+				String ret = MutinContractdocUploadSendall.execute(tenants,
+						"合同发送", "注意查收...", filepath);
+				if (StringUtils.isBlank(ret)) {
+					result.put(CommonErrorEnum.CONTRACT_UPLOAD_ERROR.getCode()
+							+ "",
+							CommonErrorEnum.CONTRACT_UPLOAD_ERROR.getMessage());
+				} else {
+					JSONObject retObj = JSONObject.fromObject(ret);
+					JSONObject resp = (JSONObject) retObj.get("response");
+					if (resp != null) {
+						JSONObject info = (JSONObject) resp.get("info");
+						String code = String.valueOf(info.get("code"));
+						if (100000 == Integer.parseInt(code)) {
+							JSONObject content = (JSONObject) resp
+									.get("content");
+							JSONArray contlist = (JSONArray) content
+									.get("contlist");
+							JSONObject ele = (JSONObject) contlist.get(0);
+							JSONObject contInfo = (JSONObject) ele
+									.get("continfo");
+							String signid = contInfo.getString("signid");
+							String docid = contInfo.getString("docid");
+							String ssq_email = contInfo.getString("email");
+							System.out.println(signid + ":" + docid + ":"
+									+ ssq_email);
+							boolean flag = editContract(contractno, docid,
+									signid, ssq_email);
+							if (flag) {
+								result.put("code", "0");
+								result.put("msg", "合同上传成功");
+							}
+						} else {
+							result.put("code", code);
+							result.put("msg", "合同上传失败");
+						}
+					}
+			} 
+			}else {
+				result.put("code",
+						CommonErrorEnum.CONTRACT_PRODUCE_ERROR.getCode() + "");
+				result.put("msg",
+						CommonErrorEnum.CONTRACT_PRODUCE_ERROR.getMessage());
+			}
+			
+		} else {
+			result.put("code", CommonErrorEnum.CONTRACT_IS_NOT_EXIST.getCode()
+					+ "");
+			result.put("msg",
+					CommonErrorEnum.CONTRACT_IS_NOT_EXIST.getMessage());
+		}
+		return result;
+	}
+
+	/**********************************************************************************************/
+
+	public boolean updateContractAfterPay(String out_trade_no) {
+		if (jdbcTemplate == null) {
+			jdbcTemplate = (JdbcTemplate) SpringManage.getInstance().getObject(
+					"jdbcTemplate");
+		}
+		String sql = "select t1.* from " + Contract.TABLENAME + " t1 left join "
+				+ Order.TABLENAME
+				+ " t2 on t1.id = t2.contract_id where t2.orderno= ? limit 1";
+		// int roomid = jdbcTemplate.queryForInt(sql , new
+		// Object[]{out_trade_no});
+		List list = jdbcTemplate.queryForList(sql,
+				new Object[] { out_trade_no });
+		if (list != null && list.size() > 0) {
+			Map<String, Object> map = (Map<String, Object>) list.get(0);
+			Contract c = new Contract();
+			LTBeanUtils.getInstance().Map2Bean(map, c);
+			sql = "update "
+					+ Room.TABLENAME
+					+ " set status = 1,rental_start_time=? ,rental_end_time=? where id = ?";
+			String firstOrderNo = "";
+			if (c.getId() == 0) {
+				return false;
+			} else {
+				// 更新房源的状态 房源的签订时间，房源的出租结束时间
+				int affected = jdbcTemplate.update(
+						sql,
+						new Object[] { c.getSign_time(), c.getEnd_time(),
+								c.getRoom_id() });
+				if (affected <= 0) {
+					return false;
+				}
+				sql = "update " + Contract.TABLENAME
+						+ " set  completedState= '1' where id = ?";
+				affected = jdbcTemplate.update(sql, new Object[] { c.getId() });
+				if (affected <= 0) {
+					return false;
+				}
+				 firstOrderNo = orderDao.getFristOrderNo (c.getId());
+			}
+			if (StringUtils.isNotEmpty(firstOrderNo) && out_trade_no.equals(firstOrderNo)) {
+				System.out.println("this is frist pay order ,sign contract");
+//				boolean isSignSuccess = autosign(c.getContractno());
+//				if (isSignSuccess) {
+					//添加自动签署合同 未测试
+					return autosign(c.getContractno());
+//					return true ;
+//				}
+			}
+			return true;
+		}
+		return true;
+	}
+	
+	public boolean autosign(String contractno) {
+		 
+		ContractVo contractVo = getContractByNo(contractno);
+		if( contractVo != null ){
+				System.out.println("sign:"+contractVo.getSignid() + "," + contractVo.getSsq_email());
+				String str = ContractAutoSignAfterPay.execute(contractVo.getSignid(), contractVo.getSsq_email());
+				return true ;
+		}else {
+			return false;
+		}
+	}
+	
+	public static void main(String[] args) {
+		ContractDaoImpl contractDaoImpl = new ContractDaoImpl();
+//		Contract contract = new Contract();
+//		RoomVo roomVo = new RoomVo();
+//		contractDaoImpl.save(contract, roomVo);
+//		String orderno ="order011300393";
+//		contractDaoImpl.save("");
+		
+		//contractDaoImpl.updateContractAfterPay(orderno);
+		contractDaoImpl.getContractByTenantId("58");
+	}
+
+}

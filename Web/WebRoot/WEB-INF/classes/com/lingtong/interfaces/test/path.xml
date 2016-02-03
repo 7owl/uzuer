@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	本地:localhost    8080 
+	测试:20.26.11.29  8180
+	生产:10.70.60.134 8181
+ -->
+<address>
+	<server>10.70.60.134</server>
+	<port>8181</port>
+	<auth>{\"uid\":\"47\",\"platform\":\"\",\"version\":\"\",\"token\":\"39e0c6dc88a2b3ff7424cb1bd1e50636\",\"packageName\":\"\"}</auth>
+</address>
